@@ -48,7 +48,7 @@ const FADE_START = 12
 const FADE_END = 22
 const ARCH_FADE = [15, 26] as const
 /** Quá tiến độ này camera đã ra khỏi vườn: ẩn cả cảnh và ngừng vẽ liên tục. */
-const GARDEN_VISIBLE_UNTIL = 0.62
+const GARDEN_VISIBLE_UNTIL = 0.78
 
 /** Mặt đất kéo tới sát camera ở đầu hành trình (camera đứng ở z = 8). */
 const GROUND_NEAR = 9

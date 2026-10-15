@@ -888,182 +888,146 @@ html[data-journey='3d'] .garden-walk {
   }
 }
 
-/* ---------- gallery sợi tơ hồng ---------- */
+/* ---------- đường ảnh khung vòm ---------- */
 .section-photos {
   max-width: none;
-  background: var(--surface);
-  /* Phần ảnh rộng bằng cả màn hình, nội dung bên trong vẫn gói trong cột hẹp. */
   padding-left: 0;
   padding-right: 0;
 }
 
-.section-photos > .section-title,
-.section-photos > .section-sub {
-  padding: 0 max(20px, env(safe-area-inset-right)) 0
-    max(20px, env(safe-area-inset-left));
+.section-photos > .photo-path-stage > .section-title,
+.section-photos > .photo-path-stage > .section-sub {
+  padding: 0 max(20px, env(safe-area-inset-right)) 0 max(20px, env(safe-area-inset-left));
 }
 
-.thread-gallery {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  gap: 76px;
-  max-width: 520px;
-  margin: 0 auto;
-  padding: 36px max(20px, env(safe-area-inset-right)) 8px
-    max(20px, env(safe-area-inset-left));
+/* Không có 3D: tiêu đề tĩnh, nút xem ảnh, rồi lưới ảnh khung vòm. */
+.photo-path-tap,
+.photo-path-hint {
+  display: none;
 }
 
-.photo-card {
-  position: relative;
-  width: 64%;
-  margin: 0;
-  transition:
-    opacity 0.7s ease,
-    transform 0.7s cubic-bezier(0.2, 0.7, 0.2, 1);
-}
-
-.photo-card[data-side='left'] {
-  align-self: flex-start;
-  --tilt: -2.4deg;
-}
-
-.photo-card[data-side='right'] {
-  align-self: flex-end;
-  --tilt: 2.2deg;
-}
-
-.photo-card {
-  transform: rotate(var(--tilt));
-}
-
-.photo-card.is-hidden {
-  opacity: 0;
-  transform: translateY(32px) rotate(var(--tilt)) scale(0.96);
-  /* Chưa hiện thì không chạm được (tránh mở nhầm ảnh chưa thấy khi chạm vào khoảng trống). */
-  pointer-events: none;
-}
-
-/* Ảnh chưa hiện nhưng được focus bằng bàn phím thì hiện ra để người dùng thấy mình đang ở đâu. */
-.photo-card.is-hidden:focus-within {
-  opacity: 1;
-  transform: rotate(var(--tilt));
-}
-
-.photo-frame {
+.photo-path-open {
   display: block;
-  width: 100%;
-  padding: 8px 8px 8px;
-  border: 0;
-  border-radius: 4px;
-  background: #fff;
-  box-shadow: 0 8px 22px rgba(59, 42, 45, 0.22);
+  min-height: var(--tap-min);
+  margin: var(--space-3) auto 0;
+  padding: 0 1.4rem;
+  border: 1.5px solid var(--accent-strong);
+  border-radius: var(--radius-pill);
+  background: var(--card);
+  color: var(--accent-strong);
+  font: 600 var(--text-body) / 1 var(--font-sans);
   cursor: pointer;
+  touch-action: manipulation;
 }
 
-.photo-frame img {
+.photo-arch-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-4) var(--space-3);
+  max-width: 520px;
+  margin: var(--space-4) auto 0;
+  padding: 0 max(20px, env(safe-area-inset-right)) 0 max(20px, env(safe-area-inset-left));
+  list-style: none;
+}
+
+/* Khung vòm: nửa trên bo tròn hết cỡ, viền kem; mặt người nằm ở nửa trên ảnh nên neo ảnh theo phía trên. */
+.photo-arch {
   display: block;
   width: 100%;
-  height: auto;
-  border-radius: 2px;
+  aspect-ratio: 17 / 25;
+  padding: 5px;
+  border: 0;
+  border-radius: 999px 999px 10px 10px;
+  background: #f6e7d4;
+  box-shadow: 0 6px 18px rgba(59, 42, 45, 0.18);
+  cursor: pointer;
+  overflow: hidden;
+  touch-action: manipulation;
+  transition: transform 180ms ease-out;
 }
 
-.thread-svg {
+.photo-arch:active {
+  transform: scale(0.98);
+}
+
+.photo-arch img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: 999px 999px 6px 6px;
+  object-fit: cover;
+  object-position: center 30%;
+}
+
+.photo-arch-grid li:nth-child(even) {
+  margin-top: var(--space-5);
+}
+
+@media (min-width: 700px) {
+  .photo-arch-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    max-width: 960px;
+  }
+}
+
+/* Có 3D: phần ảnh là đoạn cuộn trong suốt, khung dính giữ tiêu đề và nút trên màn hình trong lúc camera lướt qua ảnh. */
+html[data-journey='3d'] .section-photos {
+  height: 420vh;
+  height: 420svh;
+  padding-top: 0;
+  padding-bottom: 0;
+  background: none;
+}
+
+html[data-journey='3d'] .photo-path-stage {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  height: 100svh;
+  padding-top: max(var(--space-5), env(safe-area-inset-top));
+  overflow: hidden;
+}
+
+html[data-journey='3d'] .photo-path-stage > .section-title,
+html[data-journey='3d'] .photo-path-stage > .section-sub {
+  position: relative;
+  text-shadow: 0 1px 10px var(--journey-bg), 0 0 3px var(--journey-bg);
+}
+
+html[data-journey='3d'] .photo-path-tap {
+  display: block;
   position: absolute;
   inset: 0;
-  pointer-events: none;
-  overflow: visible;
+  /* Cho phép cuộn dọc trang khi vuốt trên lớp chạm. */
+  touch-action: pan-y;
 }
 
-/* Sợi chỉ chui dưới ảnh; nút thắt nằm trên ảnh nên trông như buộc vào góc. */
-.thread-under {
-  z-index: 0;
-}
-
-.thread-knots {
-  z-index: 2;
-}
-
-.photo-card {
-  z-index: 1;
-}
-
-.thread-line,
-.thread-shadow {
-  fill: none;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-
-/* Sợi chỉ thật rất mảnh; càng dày càng giống con giun. */
-.thread-line {
-  stroke: var(--thread);
-  stroke-width: 1.5;
-}
-
-/* Bóng đổ nhẹ xuống nền giấy, lệch xuống dưới một chút cho có chiều nổi. */
-.thread-shadow {
-  stroke: rgba(59, 42, 45, 0.28);
-  stroke-width: 1.5;
-  transform: translate(1.2px, 2.6px);
-}
-
-.knot {
-  fill: var(--thread);
-  transform-box: fill-box;
-  transform-origin: center;
-  transform: scale(0);
-  transition: transform 0.4s cubic-bezier(0.3, 1.6, 0.5, 1) 0.1s;
-}
-
-.knot.is-tied {
-  transform: scale(1);
-}
-
-/* Điểm sáng nhỏ trên nút để nó có cảm giác là một cục thắt tròn. */
-.knot-shine {
-  fill: rgba(255, 255, 255, 0.55);
-}
-
-.bow-wrap {
-  position: relative;
-  z-index: 1;
-  align-self: center;
-  margin-top: 4px;
-  text-align: center;
-  transition: opacity 0.8s ease;
-}
-
-.bow-wrap.is-hidden {
-  opacity: 0;
-}
-
-.bow {
+html[data-journey='3d'] .photo-path-hint {
   display: block;
-  margin: 0 auto 6px;
-  fill: var(--thread);
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(max(var(--space-5), env(safe-area-inset-top)) + 4.4rem);
+  margin: 0;
+  padding: 0 20px;
+  text-align: center;
+  font-size: var(--text-body);
+  color: var(--ink);
+  text-shadow: 0 1px 8px var(--journey-bg), 0 0 3px var(--journey-bg);
+  pointer-events: none;
 }
 
-.bow-tail {
-  fill: none;
-  stroke: var(--thread);
-  stroke-width: 2.6;
-  stroke-linecap: round;
+html[data-journey='3d'] .photo-path-open {
+  position: absolute;
+  left: 50%;
+  bottom: calc(var(--action-bar-h) + 22px + env(safe-area-inset-bottom));
+  transform: translateX(-50%);
+  margin: 0;
+  background: rgba(255, 255, 255, 0.92);
 }
 
-.bow-caption {
-  font-family: var(--font-serif);
-  font-style: italic;
-  font-size: 1.15rem;
-  color: var(--accent-strong);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .photo-card,
-  .knot,
-  .bow-wrap {
-    transition: none;
-  }
+html[data-journey='3d'] .photo-arch-grid {
+  display: none;
 }
 
 /* ---------- trình xem ảnh toàn màn hình ---------- */
@@ -1152,109 +1116,6 @@ html[data-journey='3d'] .garden-walk {
 .photo-viewer-nav:disabled {
   opacity: 0.25;
   cursor: default;
-}
-
-/* ---------- hành lang ký ức (gallery WebGL) ---------- */
-.section-corridor {
-  max-width: none;
-  padding: 0 0 var(--space-5);
-  /* Nền tối hòa vào các phần sáng ở hai đầu bằng dải chuyển màu. */
-  background: linear-gradient(
-    180deg,
-    var(--surface) 0,
-    #2b1a24 110px,
-    #2b1a24 calc(100% - 110px),
-    var(--surface) 100%
-  );
-  color: #fff;
-}
-
-.section-corridor > .section-title {
-  padding: 96px max(20px, env(safe-area-inset-right)) 0
-    max(20px, env(safe-area-inset-left));
-  color: #fff;
-}
-
-.section-corridor > .section-sub {
-  padding: 0 max(20px, env(safe-area-inset-right)) 0
-    max(20px, env(safe-area-inset-left));
-  color: #f0dce2;
-}
-
-/* Vùng cuộn cao vài màn hình; khung dính ở trong giữ nguyên trên màn hình khi cuộn qua. */
-.corridor-wrap {
-  position: relative;
-  height: 700vh;
-  height: var(--corridor-height, 700svh);
-}
-
-.corridor-stage {
-  position: sticky;
-  top: 0;
-  height: 100vh;
-  height: 100svh;
-  overflow: hidden;
-}
-
-.corridor-canvas {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  display: block;
-  /* Cho phép cuộn dọc trang khi vuốt trên canvas. */
-  touch-action: pan-y;
-}
-
-.corridor-loading {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #f0dce2;
-  pointer-events: none;
-}
-
-.corridor-open {
-  position: absolute;
-  top: calc(14px + env(safe-area-inset-top));
-  right: max(14px, env(safe-area-inset-right));
-  min-height: var(--tap-min);
-  padding: 0 1.1rem;
-  border: 1.5px solid rgba(255, 255, 255, 0.55);
-  border-radius: var(--radius-pill);
-  background: rgba(30, 16, 24, 0.55);
-  color: #fff;
-  font: 600 0.9375rem / 1 var(--font-sans);
-  cursor: pointer;
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
-}
-
-.corridor-hint {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: calc(var(--action-bar-h) + 18px + env(safe-area-inset-bottom));
-  padding: 0 20px;
-  text-align: center;
-  font-size: var(--text-body);
-  color: #f6e6ec;
-  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.6);
-  pointer-events: none;
-}
-
-/* Dòng chẩn đoán (chỉ hiện khi mở ?debug). */
-.gallery-debug {
-  margin: 0;
-  padding: 6px 12px;
-  background: #1c1219;
-  color: #ffd6e0;
-  font:
-    12px / 1.4 ui-monospace,
-    monospace;
-  text-align: center;
 }
 
 /* ---------- bầu trời đèn lồng ---------- */

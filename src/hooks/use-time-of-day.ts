@@ -5,6 +5,10 @@ import { quantizeTod, todColor, todFromProgress } from '../journey/time-of-day'
 
 /** Camera đã đi hết khu vườn (3 cổng vòm hoa) khi khách cuộn qua hết phần lịch trình. */
 const GARDEN_END_PROGRESS = 0.52
+/** Camera đã đi hết đường ảnh (khung vòm) khi khách cuộn qua hết phần ảnh cưới. */
+const PHOTOS_END_PROGRESS = 0.71
+/** Phần ảnh vừa dính vào màn hình (phần sự kiện đã trôi hết): từ đây mới có ảnh trong cảnh. */
+const PHOTOS_START_PROGRESS = 0.54
 
 /**
  * Tiến độ hành trình tại vị trí cuộn hiện tại. Neo theo nội dung: hết phần lịch trình thì camera vừa đi hết khu vườn,
@@ -21,8 +25,21 @@ function readTarget(): number {
   const anchors: ProgressAnchor[] = [
     { y: 0, progress: 0 },
     { y: gardenEnd, progress: GARDEN_END_PROGRESS },
-    { y: scrollable, progress: 1 },
   ]
+  const photos = document.getElementById('photos')
+  if (photos && photos.offsetParent !== null) {
+    const rect = photos.getBoundingClientRect()
+    const photosStart = rect.top + window.scrollY
+    const photosEnd = rect.bottom + window.scrollY - window.innerHeight
+    if (photosStart > gardenEnd && photosEnd > photosStart && photosEnd < scrollable) {
+      anchors.push({ y: photosStart, progress: PHOTOS_START_PROGRESS }, { y: photosEnd, progress: PHOTOS_END_PROGRESS })
+      // Giữ camera đứng yên ở ảnh cuối tới khi phần ảnh trượt khỏi màn hình: phần sau phủ lên như tấm màn, không để
+      // ảnh cuối tan thành khoảng trống trong lúc khung dính đang rời đi.
+      const photosBottom = rect.bottom + window.scrollY
+      if (photosBottom < scrollable) anchors.push({ y: photosBottom, progress: PHOTOS_END_PROGRESS })
+    }
+  }
+  anchors.push({ y: scrollable, progress: 1 })
   return anchoredProgress(window.scrollY, anchors)
 }
 

@@ -1,6 +1,6 @@
 ---
 title: "Phase 4: Scene 3 - Con đường ảnh khung vòm"
-status: todo
+status: in-progress
 priority: P1
 effort: "1.25d"
 dependencies: [1]
@@ -39,8 +39,8 @@ Gộp hành lang ảnh hiện có (`corridor-scene.ts`) vào journey chung: ản
 ## Success Criteria
 
 - [ ] Phần ảnh ≤ ~25% chiều dài trang; ≥30fps (throttle 4x)
-- [ ] Chạm ảnh phóng to hoạt động; fallback dùng được
-- [ ] Không còn mã hành lang cũ không dùng
+- [x] Chạm ảnh phóng to hoạt động (đã thử bằng chuột thật trong trình duyệt headless); fallback lưới vòm dùng được
+- [x] Không còn mã hành lang cũ không dùng
 
 ## Risk Assessment
 

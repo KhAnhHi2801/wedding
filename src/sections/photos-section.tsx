@@ -1,62 +1,51 @@
 import { useState } from 'react'
-import { PhotoCorridor } from '../components/photo-corridor'
 import { PhotoViewer } from '../components/photo-viewer'
 import { photos } from '../config/assets'
-import { chooseGallery, type GalleryChoice } from '../lib/gallery-layout'
-import { probeWebgl } from '../lib/webgl-support'
-import { ThreadGallery } from './thread-gallery'
-
-const browser = () => (typeof window === 'undefined' ? undefined : window)
-const prefersReducedMotion = () => Boolean(browser()?.matchMedia?.('(prefers-reduced-motion: reduce)').matches)
-const debugOn = () => new URLSearchParams(browser()?.location.search ?? '').has('debug')
-
-function CorridorGallery({ calm, onFail }: { calm: boolean; onFail: (reason: string) => void }) {
-  const [viewing, setViewing] = useState<number | null>(null)
-  return (
-    <section className="section section-corridor" id="photos" aria-labelledby="photos-title">
-      <h2 className="section-title" id="photos-title">
-        Ảnh cưới
-      </h2>
-      <p className="section-sub">Bước vào những khoảnh khắc của chúng mình</p>
-      <PhotoCorridor photos={photos} onOpenViewer={setViewing} calm={calm} onFail={onFail} />
-      <PhotoViewer photos={photos} index={viewing} onChange={setViewing} onClose={() => setViewing(null)} />
-    </section>
-  )
-}
+import { photoPicker } from '../journey/photo-state'
 
 /**
- * Phần ảnh cưới. Mặc định là hành lang 3D (WebGL); máy không có WebGL hoặc WebGL lỗi giữa chừng thì dùng gallery
- * sợi tơ hồng (thuần SVG). Khách bật giảm chuyển động vẫn thấy hành lang, ở bản yên tĩnh. Ép bằng
- * ?gallery=thread|corridor khi thử; thêm ?debug để hiện lý do chọn (hữu ích khi một điện thoại lại rơi vào dự phòng).
- * Ảnh lấy từ thư mục public/assets/photos (xem src/config/assets.ts); thư mục trống thì không hiện phần này.
+ * Phần ảnh cưới. Khi hành trình 3D chạy, phần này chỉ là đoạn cuộn trong suốt (CSS) để camera lướt qua các ảnh khung
+ * vòm trong cảnh 3D phía sau; chạm vào ảnh 3D hoặc nút "Xem tất cả ảnh" mở trình xem toàn màn hình. Khi không có 3D
+ * (không WebGL, giảm chuyển động, lỗi) thì hiện lưới ảnh khung vòm HTML, dùng đầy đủ. Ảnh lấy từ thư mục
+ * public/assets/photos (xem src/config/assets.ts); thư mục trống thì không hiện phần này.
  */
 export function PhotosSection() {
-  const [choice, setChoice] = useState<GalleryChoice>(() =>
-    chooseGallery({
-      webgl: probeWebgl(),
-      reducedMotion: prefersReducedMotion(),
-      search: browser()?.location.search ?? '',
-    }),
-  )
+  const [viewing, setViewing] = useState<number | null>(null)
   if (photos.length === 0) return null
 
-  const gallery =
-    choice.mode === 'thread' ? (
-      <ThreadGallery />
-    ) : (
-      <CorridorGallery
-        calm={choice.calm}
-        onFail={(reason) => setChoice({ mode: 'thread', calm: choice.calm, reason: `hành lang lỗi: ${reason}` })}
-      />
-    )
+  // Canvas 3D nằm sau nội dung và không nhận chạm: đổi điểm chạm sang toạ độ chuẩn hóa rồi hỏi cảnh ảnh nào trúng.
+  const onTapScene = (event: React.MouseEvent) => {
+    const x = (event.clientX / window.innerWidth) * 2 - 1
+    const y = -((event.clientY / window.innerHeight) * 2 - 1)
+    const hit = photoPicker.pick(x, y)
+    if (hit !== null) setViewing(hit)
+  }
+
   return (
-    <>
-      {debugOn() && (
-        <p className="gallery-debug" role="status">
-          Gallery: {choice.mode === 'corridor' ? 'hành lang 3D' : 'sợi tơ hồng'} · {choice.reason}
+    <section className="section section-photos" id="photos" aria-labelledby="photos-title">
+      <div className="photo-path-stage">
+        <h2 className="section-title" id="photos-title">
+          Ảnh cưới
+        </h2>
+        <p className="section-sub">Bước vào những khoảnh khắc của chúng mình</p>
+        <div className="photo-path-tap" onClick={onTapScene} aria-hidden="true" />
+        <p className="photo-path-hint" aria-hidden="true">
+          Cuộn để đi tiếp · Chạm ảnh để phóng to
         </p>
-      )}
-      {gallery}
-    </>
+        <button type="button" className="photo-path-open" onClick={() => setViewing(photoPicker.focus)}>
+          Xem tất cả ảnh
+        </button>
+      </div>
+      <ul className="photo-arch-grid">
+        {photos.map((photo, index) => (
+          <li key={photo.src}>
+            <button type="button" className="photo-arch" onClick={() => setViewing(index)} aria-label={`Xem ảnh ${index + 1}: ${photo.alt}`}>
+              <img src={photo.src} alt="" width={photo.width} height={photo.height} loading="lazy" decoding="async" />
+            </button>
+          </li>
+        ))}
+      </ul>
+      <PhotoViewer photos={photos} index={viewing} onChange={setViewing} onClose={() => setViewing(null)} />
+    </section>
   )
 }
