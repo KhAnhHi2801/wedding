@@ -1,6 +1,6 @@
 ---
 title: "Phase 5: Scene 4 - Hoàng hôn, dây đèn lời chúc"
-status: todo
+status: in-progress
 priority: P1
 effort: "1.5d"
 dependencies: [1]
@@ -41,10 +41,21 @@ Cảnh đỉnh điểm cảm xúc: bầu trời hoàng hôn bằng shader, dây 
 
 - [ ] Gửi lời chúc → bóng đèn của khách xuất hiện và sáng ngay, không cần cuộn
 - [ ] 100 bóng ≥30fps (throttle 4x) ở tier trung; vị trí ổn định khi tải lại
-- [ ] Chạm trúng bóng trên màn 360px; fallback danh sách đọc được
+- [x] Chạm trúng bóng (đã thử chuột thật, màn 430px); fallback bầu trời đèn lồng 2D + danh sách đọc được
 
 ## Risk Assessment
 
 - Bloom nặng trên máy yếu → tier thấp dùng quầng sprite thay bloom.
 - Bóng đèn nhỏ khó chạm → vùng chạm lớn hơn hình, ưu tiên bóng gần điểm chạm nhất.
 - Phase 5 cũ đang dở (`wish-sky.tsx` 501 dòng): đọc hiện trạng và giữ hành vi (id ổn định, không đưa đèn chưa có id lên trời) trước khi thay.
+
+## Ghi chú thực hiện
+
+- Không dùng bloom (K6): quầng sáng nằm trong shader điểm sáng, đủ cho mọi tier; bỏ `src/journey/shaders/sky.ts`, shader nằm ở `dusk-sky-shader.ts`, `light-bulb-shader.ts`.
+- `wish-sky.tsx` được giữ làm bản dự phòng HTML (không WebGL / giảm chuyển động), không xóa.
+- Vị trí bóng đèn: 5 dây, dây = hash(id) % 5, chỗ trên dây theo hash: ổn định khi tải lại. Lời chúc vừa gửi treo ở dây trước camera trong phiên đó; tải lại thì về chỗ theo id.
+- Chưa làm: đổi màu form/list theo palette hoàng hôn (đang dùng palette cũ, đã đọc được); đo FPS 100 bóng.
+
+## Đổi hướng (thay cho phần trên)
+
+Dây đèn hoàng hôn tím và bầu trời đèn lồng bị bỏ vì lệch phong cách với khu vườn hoa. Lời chúc giờ gắn theo từng ảnh trong album: vòng hoa nở quanh vòm ảnh (dùng lại hình hoa/lá của vườn), thẻ nơ treo trên vòm, thẻ giấy kem phía dưới tự đổi lời chúc. Xem `src/journey/scenes/photo-wreath.ts`, `photo-wish-tags.ts`, `src/components/photo-wish-card.tsx`, `src/journey/wish-lights-state.ts`. Đã xóa: `dusk-scene.ts`, `journey/shaders/*`, `wish-sky.tsx`, `wish-light-card.tsx`.

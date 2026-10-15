@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { PhotoViewer } from '../components/photo-viewer'
+import { PhotoWishCard } from '../components/photo-wish-card'
 import { photos } from '../config/assets'
 import { photoPicker } from '../journey/photo-state'
 
@@ -33,8 +34,9 @@ export function PhotosSection() {
           Cuộn để đi tiếp · Chạm ảnh để phóng to
         </p>
         <button type="button" className="photo-path-open" onClick={() => setViewing(photoPicker.focus)}>
-          Xem tất cả ảnh
+          Xem tất cả
         </button>
+        <PhotoWishCard />
       </div>
       <ul className="photo-arch-grid">
         {photos.map((photo, index) => (

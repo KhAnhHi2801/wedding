@@ -149,20 +149,23 @@ html[data-journey='3d'] .hero-scrim {
   cursor: pointer;
 }
 
-.hero:is([data-gate='loading'], [data-gate='closed'], [data-gate='opening'])
-  .hero-inner {
-  /* Chữ viết thẳng lên hai cánh cổng (nền xanh nhạt, chữ ink), không có tấm nền; hoa chỉ ở chân và đỉnh cánh nên không đè chữ. */
-  width: min(76vw, 340px);
-  margin: 0 auto calc(var(--action-bar-h) + env(safe-area-inset-bottom) + 10vh);
-  padding: 0;
-  color: var(--ink);
-  transition: opacity 0.35s ease;
+.hero:is([data-gate='loading'], [data-gate='closed'], [data-gate='opening']) {
+  /* Quả cầu thủy tinh (canvas 3D) ở giữa màn hình; chữ HTML nằm phía trên (lời mời) và phía dưới (tên) quả cầu. */
+  --gate-text: var(--ink);
 }
 
 .hero:is([data-gate='loading'], [data-gate='closed'], [data-gate='opening'])
-  .petal-field {
-  /* Cánh hoa HTML rơi đè lên chữ viết thẳng trên cánh cổng; cổng 3D đã có hoa của nó. */
-  display: none;
+  .hero-inner {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: calc(env(safe-area-inset-top) + 4.5vh) var(--space-4) 0;
+  color: var(--gate-text);
+  text-align: center;
+  pointer-events: none;
+  transition: opacity 0.35s ease;
 }
 
 .hero[data-gate='opening'] :is(.hero-inner, .hero-open) {
@@ -170,104 +173,192 @@ html[data-journey='3d'] .hero-scrim {
   pointer-events: none;
 }
 
-/* Lời mời đã có ở hero sau khi cổng mở, nên trên cổng chỉ để tên cô dâu chú rể. */
+/* Lời mời đích danh ở đầu trang: khách thấy ngay thiệp này gửi riêng cho mình. */
 .hero:is([data-gate='loading'], [data-gate='closed'], [data-gate='opening'])
   .hero-invite {
-  display: none;
+  margin: 0;
+  font-size: clamp(12px, 3.4vw, 15px);
+  letter-spacing: 0.14em;
+  text-shadow: none;
+  text-transform: uppercase;
+  line-height: 1.6;
+  color: var(--ink-soft);
 }
 
 .hero:is([data-gate='loading'], [data-gate='closed'], [data-gate='opening'])
-  .hero-names {
-  /* Đơn vị vw (không dùng rem) để cỡ chữ hệ thống lớn của Android không làm tên tràn khỏi cánh cổng. */
-  font-size: clamp(18px, 6.4vw, 38px);
-  margin-bottom: 0;
-  text-shadow: none;
+  .hero-invite strong {
+  display: block;
+  margin-top: 0.35em;
+  font-family: var(--font-serif);
+  font-size: 1.7em;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  text-transform: none;
+  color: var(--ink);
 }
 
 /* Ngày tháng và nút xem lịch trình chỉ hiện khi cổng đã mở. */
-.hero:is([data-gate='loading'], [data-gate='closed'], [data-gate='opening'])
-  .hero-cta {
-  display: none;
-}
-
-.hero:is([data-gate='loading'], [data-gate='closed'], [data-gate='opening'])
-  .hero-date {
+.hero:is([data-gate='loading'], [data-gate='closed'], [data-gate='opening']) :is(.hero-cta, .hero-date) {
   display: none;
 }
 
 /*
- * Trên cổng: tên cô dâu ở cánh trái, tên chú rể ở cánh phải, dấu & là khoá cổng ở giữa. Mỗi tên tự xuống dòng theo từng
- * chữ (min-content) để vừa bề rộng một cánh thay vì dàn ra.
+ * Tên cô dâu ở mép trái, chú rể ở mép phải, ngang tầm hai sợi chỉ. Hai sợi chỉ tiến lại gần nhau thì tên mờ dần và trượt
+ * vào trong. `--thread` (0..1) do cảnh 3D ghi lên <html> mỗi khung hình, nên chữ và cảnh luôn cùng nhịp.
  */
-.hero:is([data-gate='loading'], [data-gate='closed'], [data-gate='opening'])
-  .hero-names {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
-  align-items: center;
-  column-gap: 0;
-}
-
-.hero:is([data-gate='loading'], [data-gate='closed'], [data-gate='opening'])
-  .hero-name {
-  min-width: 0;
-  margin: 0 auto;
-  line-height: 1.15;
-  overflow-wrap: anywhere;
-}
-
-.hero:is([data-gate='loading'], [data-gate='closed'], [data-gate='opening'])
-  .hero-amp {
-  display: grid;
-  place-items: center;
-  width: 1.9em;
-  height: 1.9em;
+.hero:is([data-gate='loading'], [data-gate='closed'], [data-gate='opening']) .hero-names {
   margin: 0;
-  border-radius: 50%;
-  background: #f6efdf;
-  border: 2px solid #d9b96c;
-  box-shadow: 0 2px 8px rgba(59, 42, 45, 0.25);
-  font-size: 0.8em;
-  line-height: 1;
+  font-size: clamp(20px, 5.4vw, 38px);
+  line-height: 1.2;
+  text-shadow: none;
 }
 
-/* Nút mở thiệp nằm dưới cổng, ngay trên thanh hành động; chưa có cổng (loading) thì chưa có nút. */
+.hero:is([data-gate='loading'], [data-gate='closed'], [data-gate='opening']) .hero-name {
+  position: fixed;
+  top: 50%;
+  max-width: 34vw;
+  opacity: max(0, calc(1.35 - var(--thread, 0) * 1.5));
+  pointer-events: none;
+}
+
+.hero:is([data-gate='loading'], [data-gate='closed'], [data-gate='opening']) .hero-name:nth-child(1) {
+  left: clamp(14px, 5vw, 56px);
+  transform: translate(calc(var(--thread, 0) * 26px), -50%);
+}
+
+.hero:is([data-gate='loading'], [data-gate='closed'], [data-gate='opening']) .hero-name:nth-child(4) {
+  right: clamp(14px, 5vw, 56px);
+  text-align: right;
+  transform: translate(calc(var(--thread, 0) * -26px), -50%);
+}
+
+.hero:is([data-gate='loading'], [data-gate='closed'], [data-gate='opening']) .hero-amp {
+  display: none;
+}
+
+/* Dòng gợi ý cử chỉ: nhấp nháy nhẹ cho tới khi khách bắt đầu kéo. */
+.hero-thread-hint {
+  display: none;
+}
+
+.hero:is([data-gate='closed'], [data-gate='opening']) .hero-thread-hint {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: calc(env(safe-area-inset-bottom) + 12vh);
+  display: block;
+  margin: 0;
+  text-align: center;
+  font-size: 0.95rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  pointer-events: none;
+  opacity: max(0, calc(1 - var(--thread, 0) * 12));
+  animation: hint-breathe 2.4s ease-in-out infinite;
+}
+
+@keyframes hint-breathe {
+  50% {
+    transform: translateY(-4px);
+    color: var(--ink);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-thread-hint {
+    animation: none;
+  }
+}
+
+/* Nền màn se chỉ: ngà ấm sáng ở giữa, đậm dần ra mép, như đèn rọi nhẹ lên giấy. */
+html:is([data-gate='loading'], [data-gate='closed'], [data-gate='opening']) body {
+  background-image: radial-gradient(ellipse at 50% 45%, #fffaf3 0%, #f8ece1 55%, #ecd9cb 100%);
+}
+
+/* Kéo ngang để xoay quả cầu: chặn trình duyệt cuộn/zoom khi vuốt trên hero lúc cổng còn đóng. */
+.hero[data-gate='closed'] {
+  touch-action: none;
+}
+
+/* Nút "Bỏ qua": lối thoát nhỏ ở đáy cho ai không kéo được; vùng chạm vẫn >= 48px. */
 .hero:is([data-gate='closed'], [data-gate='opening']) .hero-open {
   position: absolute;
   left: 50%;
-  bottom: calc(var(--action-bar-h) + env(safe-area-inset-bottom) + 20px);
+  bottom: calc(env(safe-area-inset-bottom) + 3vh);
   transform: translateX(-50%);
-  display: inline-flex;
+  display: flex;
+  min-width: var(--tap-min);
+  min-height: var(--tap-min);
+  align-items: center;
+  justify-content: center;
+  padding: 4px 16px;
+  border: 0;
+  background: none;
+  color: var(--ink-soft);
+  font: inherit;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
   transition: opacity 0.35s ease;
-  /* Nút viền mảnh, nhỏ hơn tên cô dâu chú rể nhưng vùng chạm vẫn >= 44px. */
-  min-height: 44px;
-  padding: 0 28px;
-  font-size: 0.9rem;
-  letter-spacing: 0.06em;
-  background: rgba(251, 246, 240, 0.7);
-  -webkit-backdrop-filter: blur(6px);
-  backdrop-filter: blur(6px);
-  color: var(--ink);
-  border: 1px solid rgba(59, 42, 45, 0.55);
-  box-shadow: none;
 }
 
-/* Điện thoại nằm ngang (rất thấp): thu nhỏ tấm bảng và hạ nút để không đè lên nhau. */
+.hero-open-label {
+  font-size: 0.85rem;
+  letter-spacing: 0.08em;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+.hero-open:hover .hero-open-label {
+  color: var(--ink);
+}
+
+.hero-open:focus-visible {
+  outline: 2px solid var(--accent-strong);
+  outline-offset: 4px;
+  border-radius: var(--radius-pill);
+}
+
+/* Vào trang: lời mời hiện trước, nút mở thiệp hiện sau khi hoa đã nở; fill 'backwards' để trạng thái mở vẫn ẩn chữ được. */
+.hero[data-gate='closed'] .hero-inner {
+  animation: gate-rise 0.9s 0.2s ease-out backwards;
+}
+
+.hero[data-gate='closed'] .hero-open {
+  animation: gate-rise-open 0.9s 0.9s ease-out backwards;
+}
+
+@keyframes gate-rise {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+}
+
+@keyframes gate-rise-open {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 12px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero[data-gate='closed'] :is(.hero-inner, .hero-open) {
+    animation: none;
+  }
+}
+
+/* Điện thoại nằm ngang (rất thấp): bỏ lời mời, thu nhỏ con dấu để chữ không đè lên quả cầu. */
 @media (max-height: 520px) {
   .hero:is([data-gate='loading'], [data-gate='closed'], [data-gate='opening'])
-    .hero-inner {
-    width: min(50vw, 300px);
-    margin-bottom: calc(
-      var(--action-bar-h) + env(safe-area-inset-bottom) + 56px
-    );
-  }
-
-  .hero:is([data-gate='loading'], [data-gate='closed'], [data-gate='opening'])
-    .hero-names {
-    font-size: 1.6rem;
+    .hero-invite {
+    display: none;
   }
 
   .hero:is([data-gate='closed'], [data-gate='opening']) .hero-open {
-    bottom: calc(var(--action-bar-h) + env(safe-area-inset-bottom) + 8px);
+    bottom: calc(env(safe-area-inset-bottom) + 4px);
+    gap: 4px;
   }
 }
 
@@ -424,24 +515,15 @@ html[data-journey='3d'] .garden-walk {
 
 /* ---------- ảnh cưới / lời chúc (khung giữ chỗ) ---------- */
 
-.section-sky {
+.section-wishes {
   max-width: none;
-  color: #fff;
-  background: linear-gradient(
-    180deg,
-    var(--surface) 0,
-    var(--sky-top) 80px,
-    var(--sky-bottom) 100%
-  );
-  padding-top: calc(var(--space-5) + 40px);
+  background: linear-gradient(180deg, var(--bg) 0, var(--surface) 100%);
 }
 
-.section-sky .section-title {
-  color: #fff;
-}
-
-.section-sky .section-sub {
-  color: #fff;
+.section-wishes > * {
+  max-width: 560px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 /* ---------- gửi yêu thương ---------- */
@@ -517,7 +599,7 @@ html[data-journey='3d'] .garden-walk {
   justify-content: center;
   gap: 2px;
   /* Nhãn thanh điều hướng: 14px (ngoại lệ có chủ đích so với 16px của chữ thân bài). */
-  font-size: 0.875rem;
+  font-size: var(--text-body);
   font-weight: 500;
   color: var(--ink);
   text-decoration: none;
@@ -538,8 +620,10 @@ html[data-journey='3d'] .garden-walk {
 .music-toggle {
   position: fixed;
   right: 12px;
-  bottom: calc(var(--action-bar-h) + 12px + env(safe-area-inset-bottom));
+  top: calc(12px + env(safe-area-inset-top));
   z-index: 21;
+  display: grid;
+  place-items: center;
   width: var(--tap-min);
   height: var(--tap-min);
   border: 1.5px solid var(--accent-strong);
@@ -555,15 +639,36 @@ html[data-journey='3d'] .garden-walk {
   color: #fff;
 }
 
-/* Gạch chéo khi nhạc đang tắt, thay cho ký tự tổ hợp hiển thị không đồng nhất. */
-.music-toggle[aria-pressed='false'] span {
-  text-decoration: line-through;
+/* Gạch chéo khi nhạc tắt; khi đang phát thì nốt nhạc đung đưa nhẹ. */
+.music-toggle .music-slash {
+  opacity: 0;
+}
+
+.music-toggle[aria-pressed='false'] .music-slash {
+  opacity: 1;
+}
+
+.music-toggle[aria-pressed='true'] .music-icon {
+  animation: music-sway 2.4s ease-in-out infinite;
+}
+
+@keyframes music-sway {
+  50% {
+    transform: rotate(-8deg) scale(1.08);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .music-toggle[aria-pressed='true'] .music-icon {
+    animation: none;
+  }
 }
 
 /* ---------- lời chúc ---------- */
 .btn-on-sky {
   background: #fff;
   color: var(--accent-strong);
+  border: 1.5px solid var(--accent-strong);
 }
 
 .btn:disabled {
@@ -581,7 +686,7 @@ html[data-journey='3d'] .garden-walk {
   min-height: 1.55em;
   margin-bottom: var(--space-2);
   text-align: center;
-  color: #fff;
+  color: var(--ink);
 }
 
 .wish-list {
@@ -611,7 +716,7 @@ html[data-journey='3d'] .garden-walk {
 
 .wish-state {
   text-align: center;
-  color: #fff;
+  color: var(--ink);
 }
 
 .wish-state .btn {
@@ -621,7 +726,7 @@ html[data-journey='3d'] .garden-walk {
 .wish-more {
   margin-top: var(--space-3);
   text-align: center;
-  color: #fff;
+  color: var(--ink);
 }
 
 .wish-more .btn {
@@ -733,7 +838,7 @@ html[data-journey='3d'] .garden-walk {
 .field-counter {
   display: block;
   text-align: right;
-  font-size: 0.875rem;
+  font-size: var(--text-body);
   color: var(--ink-soft);
 }
 
@@ -746,14 +851,14 @@ html[data-journey='3d'] .garden-walk {
   margin: 0 auto var(--space-2);
   max-width: 520px;
   text-align: center;
-  color: #fff;
+  color: var(--ink);
 }
 
 .link-button {
   padding: 0.5rem;
   border: 0;
   background: none;
-  color: #fff;
+  color: var(--accent-strong);
   font: inherit;
   font-weight: 600;
   text-decoration: underline;
@@ -778,114 +883,6 @@ html[data-journey='3d'] .garden-walk {
   display: flex;
   gap: var(--space-1);
   justify-content: flex-end;
-}
-
-/* ---------- cánh hoa rơi ở hero ---------- */
-.petal-field {
-  position: absolute;
-  inset: 0;
-  overflow: hidden;
-  pointer-events: none;
-  /* Cánh hoa sáng nằm trên lớp tối nền nên giữ nguyên màu tươi ở nửa trên; xuống vùng có chữ thì mờ bớt
-     để chữ trắng vẫn đọc rõ. */
-  -webkit-mask-image: linear-gradient(
-    #000 0%,
-    #000 42%,
-    rgba(0, 0, 0, 0.3) 66%,
-    rgba(0, 0, 0, 0.3) 100%
-  );
-  mask-image: linear-gradient(
-    #000 0%,
-    #000 42%,
-    rgba(0, 0, 0, 0.3) 66%,
-    rgba(0, 0, 0, 0.3) 100%
-  );
-}
-
-.petal-defs {
-  position: absolute;
-}
-
-/* Lớp 1: rơi từ trên xuống. Chỉ dùng transform nên chạy trên GPU, không buộc trình duyệt tính lại layout. */
-.petal-fall {
-  position: absolute;
-  top: 0;
-  left: var(--x);
-  width: var(--size);
-  animation: petal-fall var(--fall) linear var(--delay) infinite;
-}
-
-/* Lớp 2: lắc ngang qua lại như đung đưa theo gió. */
-.petal-sway {
-  display: block;
-  animation: petal-sway var(--sway-dur) ease-in-out var(--sway-delay) infinite
-    alternate;
-}
-
-/* Lớp 3: nghiêng nhẹ và xoay tròn. Chu kỳ khác nhau ở mỗi lớp nên tổng hợp lại không lặp máy móc. */
-.petal-tumble {
-  display: block;
-  width: 100%;
-  height: auto;
-  opacity: var(--opacity);
-  animation: petal-tumble var(--tumble-dur) linear var(--tumble-delay) infinite
-    var(--spin);
-}
-
-.petal-field.is-paused .petal-fall,
-.petal-field.is-paused .petal-sway,
-.petal-field.is-paused .petal-tumble {
-  animation-play-state: paused;
-}
-
-@keyframes petal-fall {
-  from {
-    transform: translate3d(0, -90px, 0);
-  }
-  to {
-    /* Dòng vh đứng trước làm phương án dự phòng cho trình duyệt chưa hiểu svh (iOS < 15.4). */
-    transform: translate3d(0, calc(100vh + 40px), 0);
-    transform: translate3d(0, calc(100svh + 40px), 0);
-  }
-}
-
-@keyframes petal-sway {
-  from {
-    transform: translateX(calc(var(--sway) * -1));
-  }
-  to {
-    transform: translateX(var(--sway));
-  }
-}
-
-/* Nghiêng vừa phải để dáng cánh vẫn nhận ra được, kết hợp xoay tròn đủ một vòng mỗi chu kỳ (đầu = cuối nên lặp liền mạch). */
-@keyframes petal-tumble {
-  0% {
-    transform: perspective(500px) rotateX(28deg) rotateY(-18deg) rotateZ(0deg);
-  }
-  50% {
-    transform: perspective(500px) rotateX(-22deg) rotateY(24deg) rotateZ(180deg);
-  }
-  100% {
-    transform: perspective(500px) rotateX(28deg) rotateY(-18deg) rotateZ(360deg);
-  }
-}
-
-/* Giảm chuyển động: cánh hoa đứng yên, rải ở nửa trên. */
-@media (prefers-reduced-motion: reduce) {
-  .petal-fall,
-  .petal-sway,
-  .petal-tumble {
-    animation: none;
-  }
-
-  .petal-fall {
-    top: var(--top);
-  }
-
-  .petal-tumble {
-    transform: perspective(500px) rotateX(20deg) rotateY(-12deg) rotateZ(35deg);
-  }
 }
 
 /* ---------- đường ảnh khung vòm ---------- */
@@ -972,8 +969,8 @@ html[data-journey='3d'] .garden-walk {
 
 /* Có 3D: phần ảnh là đoạn cuộn trong suốt, khung dính giữ tiêu đề và nút trên màn hình trong lúc camera lướt qua ảnh. */
 html[data-journey='3d'] .section-photos {
-  height: 420vh;
-  height: 420svh;
+  height: 320vh;
+  height: 320svh;
   padding-top: 0;
   padding-bottom: 0;
   background: none;
@@ -1019,10 +1016,11 @@ html[data-journey='3d'] .photo-path-hint {
 
 html[data-journey='3d'] .photo-path-open {
   position: absolute;
-  left: 50%;
-  bottom: calc(var(--action-bar-h) + 22px + env(safe-area-inset-bottom));
-  transform: translateX(-50%);
+  z-index: 1;
+  top: max(10px, env(safe-area-inset-top));
+  left: max(10px, env(safe-area-inset-left));
   margin: 0;
+  padding: 0 1rem;
   background: rgba(255, 255, 255, 0.92);
 }
 
@@ -1118,47 +1116,64 @@ html[data-journey='3d'] .photo-arch-grid {
   cursor: default;
 }
 
-/* ---------- bầu trời đèn lồng ---------- */
-.wish-sky {
-  max-width: 560px;
-  margin: 0 auto var(--space-3);
+/* ---------- thẻ lời chúc theo ảnh ---------- */
+.photo-wish-card {
+  display: none;
 }
 
-.wish-sky-stage {
-  position: relative;
-  height: 400px;
-  overflow: hidden;
-  border-radius: var(--radius-card);
-  background: radial-gradient(
-    120% 80% at 50% 100%,
-    rgba(255, 170, 120, 0.22),
-    rgba(40, 20, 45, 0.55)
-  );
-}
-
-.wish-sky-canvas {
+html[data-journey='3d'] .photo-wish-card {
   display: block;
-  touch-action: pan-y;
-}
-
-.wish-sky-card {
-  min-height: 5.5em;
+  position: absolute;
+  z-index: 1;
+  left: max(14px, env(safe-area-inset-left));
+  right: max(14px, env(safe-area-inset-right));
+  bottom: calc(var(--action-bar-h) + 12px + env(safe-area-inset-bottom));
+  max-width: 520px;
+  margin: 0 auto;
   padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-card);
+  background: rgba(251, 246, 240, 0.95);
+  box-shadow: 0 6px 22px rgba(59, 42, 45, 0.18);
+  color: var(--ink);
   text-align: center;
-  color: #fff;
 }
 
-.wish-sky-card .wish-name {
-  color: #ffe3b8;
+.photo-wish-text {
+  min-height: 4.4em;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
-.wish-sky-hint {
+.photo-wish-card .wish-message {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: 1.125rem;
+  line-height: 1.4;
+}
+
+.photo-wish-empty {
   margin: 0;
-  opacity: 0.9;
+  color: var(--ink-soft);
 }
 
-@media (min-width: 768px) {
-  .wish-sky-stage {
-    height: 460px;
+.photo-wish-actions {
+  display: flex;
+  gap: var(--space-1);
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: var(--space-1);
+}
+
+/* Màn rộng và thấp (máy tính): thẻ lời chúc nằm bên phải để không đè lên ảnh. */
+@media (min-aspect-ratio: 5/4) and (min-width: 900px) {
+  html[data-journey='3d'] .photo-wish-card {
+    left: auto;
+    right: max(24px, env(safe-area-inset-right));
+    bottom: auto;
+    top: 50%;
+    transform: translateY(-50%);
+    width: min(320px, 26vw);
+    margin: 0;
   }
 }

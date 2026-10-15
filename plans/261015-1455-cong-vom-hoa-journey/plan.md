@@ -44,7 +44,7 @@ Người dùng cho phép đập đi xây lại. Plan này **thay thế** phase 3
 | K1 | **Một canvas cố định, một scene, camera chạy theo đường cong** theo `scrollProgress`; HTML phủ lên (pointer-events chọn lọc) | Cảnh liền mạch, một WebGL context. Đổi chỉ khi đo thấy RAM quá nặng trên máy yếu |
 | K2 | Tải theo giai đoạn: cảnh 1 (cổng + hero) dựng ngay, cảnh 2-5 nạp nền sau khi cổng mở (dynamic import + `compileAsync`) | LCP và tải ban đầu; khách không chờ cả thế giới |
 | K3 | Quality tier (cao/trung/thấp) quyết định bởi `renderer.capabilities`, `navigator.hardwareConcurrency`, DPR, FPS đo 1s đầu: giới hạn DPR, số instance, bloom, bóng đổ | Giữ ≥30fps; tier thấp chỉ tắt hậu kỳ và giảm số lượng, không đổi cấu trúc cảnh |
-| K4 | Cổng tự mở sau ~2.5s nếu khách không chạm/cuộn; luôn có nút "Bỏ qua" | Người lớn tuổi không cần biết cử chỉ nào |
+| K4 | Cổng chỉ mở khi khách chạm (hero hoặc nút con dấu "Chạm để mở thiệp"); không tự mở, không mở bằng cuộn. Đổi từ "tự mở sau 2.5s" theo yêu cầu: nhạc nền chỉ phát được sau một lần chạm | Trình duyệt chặn phát tiếng khi chưa có thao tác; người lớn tuổi thấy rõ nút to, có nhịp thở mời chạm |
 | K5 | Nền HTML/CSS đầy đủ (bố cục tĩnh kem → hoàng hôn, ảnh trong khung vòm) là fallback cho no-WebGL, context bị mất, reduced-motion | Thông tin không bao giờ nằm sau 3D |
 | K6 | Hậu kỳ (bloom) chỉ bật ở cảnh hoàng hôn và tier cao/trung; dùng `pmndrs/postprocessing` **hoặc** `EffectComposer` của Three.js, không trộn | Tránh lỗi thứ tự pass; chốt thư viện ở phase 1 |
 | K7 | Ảnh nén WebP qua `npm run optimize:images`: hero vừa khung 1600×2400 (~200KB), gallery cạnh dài ≤1600px (65-265KB); ảnh gốc ở `assets-src/` | Hiện hero 7MB, gallery 3–9MB mỗi ảnh. Bản 683×1024 ban đầu bị phóng 2x+ trên màn rộng nên mờ (đã sửa ở phase 1) |
@@ -66,7 +66,7 @@ Sau phase 1, các phase 2-5 khác file nên có thể làm song song, nhưng ch�
 
 ## Success Criteria
 
-- [ ] Vào trang chỉ thấy cổng 3D kèm lời mời đích danh; mở bằng chạm, cuộn hoặc tự mở; **nội dung website chỉ hiện sau khi cổng mở xong**
+- [ ] Vào trang chỉ thấy cổng 3D kèm lời mời đích danh; mở bằng chạm (không tự mở, không mở bằng cuộn); **nội dung website chỉ hiện sau khi cổng mở xong**
 - [ ] Toàn bộ hành trình ở **một** canvas, nền trời chuyển liên tục ngày → hoàng hôn, không điểm đổi cảnh đột ngột
 - [ ] Phần ảnh ≤ ~25% chiều dài trang (hiện 61%)
 - [ ] Mỗi lời chúc là một bóng đèn trên dây; gửi xong, đèn của khách sáng ngay trong tầm nhìn

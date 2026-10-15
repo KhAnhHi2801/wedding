@@ -5,7 +5,6 @@ import {
   Color,
   CylinderGeometry,
   DoubleSide,
-  Float32BufferAttribute,
   Fog,
   Group,
   InstancedMesh,
@@ -27,15 +26,16 @@ import type { QualityTier, TierSettings } from '../quality-tier'
 import type { JourneyFrame, SceneContext, SceneModule } from '../scene-module'
 import { todRgb } from '../time-of-day'
 import {
-  BEE_HINGE,
-  createBeeGeometry,
-  createButterflyGeometry,
-  createDaisyGeometry,
-  createFlowerGeometry,
-  createForgetMeNotGeometry,
-  createLeafGeometry,
-  createPoppyGeometry,
-} from './foliage-geometry'
+  acquireFlora,
+  createBlankTexture,
+  FLORA,
+  FLORA_DAISY,
+  FLORA_DELPHINIUM,
+  FLORA_FORGET_ME_NOT,
+  FLORA_GRASS,
+  FLORA_LEAF,
+  releaseFlora,
+} from './flora-sprites'
 
 /** Khu vườn nằm sau mặt phẳng ảnh ở đầu trang (z = -3) và kéo dài theo đường camera. */
 const Z_START = -4.5
@@ -55,58 +55,26 @@ const GROUND_NEAR = 9
 
 // Ít mà to: nhiều chi tiết li ti thu nhỏ ở xa sẽ thành những đốm lấm tấm ("hạt"), nhất là trên màn điện thoại.
 const BASE_COUNTS = {
-  grass: 4500,
-  meadow: 220,
+  grass: 460,
   daisy: 110,
-  poppy: 60,
   forgetMeNot: 110,
-  hedgeLeaves: 650,
-  hedgeBlooms: 360,
+  delphinium: 70,
+  cosmos: 26,
+  poppy: 10,
+  hedgeLeaves: 300,
+  hedgeBlooms: 300,
   pollen: 120,
-  butterflies: 14,
-  bees: 8,
 }
 
 // Cổng vòm nối nhau mỗi ~8 đơn vị: luôn thấy cổng trước chưa khuất thì cổng sau đã hiện (cảm giác một lối đi liền mạch).
 const ARCH_Z = [-10, -18, -26, -34, -42, -50]
 const ARCH_RADIUS = 2.3
 const ARCH_POST = 2.0
-const ARCH_FLOWERS = 170
-const ARCH_LEAVES = 100
+const ARCH_FLOWERS = 120
+const ARCH_LEAVES = 70
 
-const BLOOM_TINTS = ['#ffffff', '#ffffff', '#fbf3e4', '#f9dede', '#e3d9f4'].map((hex) => new Color(hex))
-const LEAF_TINTS = ['#ffffff', '#e8f5e4', '#d6ebd2', '#f3fbe9'].map((hex) => new Color(hex))
-const BUTTERFLY_TINTS = ['#ffc2d4', '#d8c8ff', '#ffe08a', '#bfe3ff', '#ffffff'].map((hex) => new Color(hex))
-const GRASS_TINTS = ['#ffffff', '#eaf5df', '#d9eccc', '#f2f8d8'].map((hex) => new Color(hex))
 
 const dummy = new Object3D()
-
-/** Cọng cỏ: dải mảnh thon dần về ngọn, tô sẵn gradient từ gốc sẫm tới ngọn nhạt bằng màu đỉnh. */
-function createBladeGeometry(): BufferGeometry {
-  const segments = 4
-  const positions: number[] = []
-  const colors: number[] = []
-  const base = new Color('#4f7a4a')
-  const tip = new Color('#a9cc93')
-  const mix = new Color()
-  for (let i = 0; i <= segments; i += 1) {
-    const t = i / segments
-    const half = 0.05 * (1 - t * 0.85)
-    positions.push(-half, t, 0, half, t, 0)
-    mix.copy(base).lerp(tip, t)
-    colors.push(mix.r, mix.g, mix.b, mix.r, mix.g, mix.b)
-  }
-  const indices: number[] = []
-  for (let i = 0; i < segments; i += 1) {
-    const a = i * 2
-    indices.push(a, a + 1, a + 2, a + 1, a + 3, a + 2)
-  }
-  const geometry = new BufferGeometry()
-  geometry.setAttribute('position', new Float32BufferAttribute(positions, 3))
-  geometry.setAttribute('color', new BufferAttribute(new Float32Array(colors), 3))
-  geometry.setIndex(indices)
-  return geometry
-}
 
 /** Chấm tròn mềm cho phấn hoa. */
 function createPollenTexture(): CanvasTexture {
@@ -160,72 +128,31 @@ function withSway(
 }
 
 /**
- * Làm vật liệu cho các con vật bay (bướm, ong) chạy hoàn toàn trong vertex shader. Mỗi con bay THEO MỘT CHIỀU nhất định
- * (trái hoặc phải, tuỳ con) ngang qua lối đi, thân quay đúng chiều bay, nhấp nhô nhẹ; hết đoạn đường thì mờ dần (co nhỏ)
- * rồi xuất hiện lại từ đầu bên kia (không bao giờ bay lùi hay đảo chiều). Cánh (đỉnh có thuộc tính `wing`) xoay quanh khớp
- * ở thân để vỗ; cả con co nhỏ dần khi ra xa như cỏ và hoa.
+ * Làm dịu màu sprite ảnh thật ngay trong fragment shader: giảm bão hòa và phủ kem ấm để hoa lá hòa vào khu vườn pastel
+ * thay vì chói như hình dán. Chạy sau `withSway` (bọc `onBeforeCompile` sẵn có).
  */
-function withFlight(
-  material: MeshBasicMaterial,
-  uniform: IUniform<number>,
-  kind: 'butterfly' | 'bee',
-): MeshBasicMaterial {
-  const butterfly = kind === 'butterfly'
-  const [hingeX, hingeY] = BEE_HINGE
-  // Bướm: lượn chậm, nhấp nhô rộng, khép mở cánh. Ong: bay nhanh, nhấp nhô ngắn, cánh rung rất nhanh quanh khớp.
-  const travel = butterfly ? '12.0' : '14.0'
-  const speed = butterfly ? '0.55' : '1.3'
-  const flapRate = butterfly ? '10.0' : '55.0'
-  const bobRate = butterfly ? '1.7' : '6.0'
-  const bobAmp = butterfly ? '0.3' : '0.1'
-  // Phần riêng của từng loài: bướm nhìn từ trên xuống nên xoay thân về hướng bay rồi khép/mở cánh; ong nhìn nghiêng nên
-  // chỉ lật theo hướng bay và xoay các đỉnh cánh quanh khớp.
-  const body = butterfly
-    ? `transformed.x *= mix(0.4, 1.0, abs(cos(uTime * ${flapRate} + flyPhase)));
-      // Thân (trục y) quay về hướng bay, nghiêng lên xuống theo nhịp nhấp nhô.
-      float heading = -1.5708 * flyDir + cos(uTime * ${bobRate} + flyPhase) * 0.35 * flyDir;
-      float hc = cos(heading);
-      float hs = sin(heading);
-      transformed.xy = vec2(hc * transformed.x - hs * transformed.y, hs * transformed.x + hc * transformed.y);`
-    : `transformed.x *= flyDir;
-      if (wing > 0.5) {
-        float flapAngle = 0.6 * sin(uTime * ${flapRate} + flyPhase) * flyDir;
-        vec2 hinge = vec2(${hingeX.toFixed(3)} * flyDir, ${hingeY.toFixed(3)});
-        vec2 rel = transformed.xy - hinge;
-        float fc = cos(flapAngle);
-        float fs = sin(flapAngle);
-        transformed.xy = hinge + vec2(fc * rel.x - fs * rel.y, fs * rel.x + fc * rel.y);
-      }`
-  material.customProgramCacheKey = () => `flight-${kind}`
-  material.onBeforeCompile = (shader) => {
-    shader.uniforms.uTime = uniform
-    shader.vertexShader = `uniform float uTime;\n${butterfly ? '' : 'attribute float wing;\n'}${shader.vertexShader}`
-      .replace(
-        '#include <begin_vertex>',
-        `#include <begin_vertex>
-      float flyPhase = instanceMatrix[3].x * 3.1 + instanceMatrix[3].z * 1.7;
-      // Mỗi con có một hướng bay cố định: +1 sang phải, -1 sang trái. Không bao giờ đảo chiều hay bay lùi.
-      float flyDir = step(0.5, fract(flyPhase * 0.37)) * 2.0 - 1.0;
-      float flyU = mod(uTime * ${speed} + flyPhase * 2.3, ${travel});
-      float flyEnds = smoothstep(0.0, 1.5, flyU) * (1.0 - smoothstep(${travel} - 1.5, ${travel}, flyU));
-      vec3 flyOffset = vec3(
-        flyDir * (flyU - ${travel} * 0.5),
-        sin(uTime * ${bobRate} + flyPhase) * ${bobAmp} + sin(uTime * ${flapRate} + flyPhase) * 0.02,
-        sin(uTime * 0.6 + flyPhase) * 0.4
-      );
-      ${body}
-      vec4 flyCenter = modelViewMatrix * (instanceMatrix * vec4(0.0, 0.0, 0.0, 1.0) + vec4(flyOffset, 0.0));
-      transformed *= flyEnds * (1.0 - smoothstep(${FADE_START}.0, ${FADE_END}.0, -flyCenter.z));`,
-      )
-      .replace(
-        '#include <project_vertex>',
-        `vec4 mvPosition = instanceMatrix * vec4( transformed, 1.0 );
-      mvPosition.xyz += flyOffset;
-      mvPosition = modelViewMatrix * mvPosition;
-      gl_Position = projectionMatrix * mvPosition;`,
-      )
+function withSoftColor(material: MeshBasicMaterial): MeshBasicMaterial {
+  const previous = material.onBeforeCompile
+  const previousKey = material.customProgramCacheKey
+  material.customProgramCacheKey = () => `${previousKey.call(material)}-soft`
+  material.onBeforeCompile = (shader, renderer) => {
+    previous.call(material, shader, renderer)
+    shader.fragmentShader = shader.fragmentShader.replace(
+      '#include <map_fragment>',
+      `#include <map_fragment>
+      float spriteLum = dot(diffuseColor.rgb, vec3(0.299, 0.587, 0.114));
+      diffuseColor.rgb = mix(vec3(spriteLum), diffuseColor.rgb, 0.82);
+      diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.97, 0.93, 0.86), 0.12) * 1.06;`,
+    )
   }
   return material
+}
+
+/** Mặt phẳng 1x1 gốc ở đáy (y từ 0 tới 1): sprite mọc từ mặt đất và lắc quanh chân. */
+function spritePlane(): PlaneGeometry {
+  const plane = new PlaneGeometry(1, 1)
+  plane.translate(0, 0.5, 0)
+  return plane
 }
 
 /** x của đường camera tại độ sâu z, để đặt vật thể đi theo lối đi uốn lượn. */
@@ -269,6 +196,7 @@ export function createGardenScene(): SceneModule {
   let ground: Mesh | null = null
   let groundMaterial: MeshBasicMaterial | null = null
   let lastFogTod = -1
+  let floraRefHeld = false
   let pathX: (z: number) => number = () => 0
 
   /** Tài nguyên dùng suốt vòng đời cảnh. */
@@ -300,113 +228,108 @@ export function createGardenScene(): SceneModule {
 
   /** Dựng toàn bộ instance ở mật độ đầy đủ. */
   const buildInstances = (
-    geometry: Record<'blade' | 'flower' | 'leaf' | 'daisy' | 'poppy' | 'forgetMeNot' | 'butterfly' | 'bee', BufferGeometry>,
-    materials: Record<'grass' | 'meadow' | 'hedgeBloom' | 'hedgeLeaf' | 'archBloom' | 'archLeaf' | 'butterfly' | 'bee', MeshBasicMaterial>,
+    geometry: Record<'sprite', BufferGeometry>,
+    materials: {
+      sprite: (kind: number, mode: 'upright' | 'arch') => MeshBasicMaterial
+    },
   ) => {
     const random = mulberry32(777)
     const zAt = () => Z_START - random() * GARDEN_LENGTH
+    const WHITE = [new Color('#ffffff')]
+    /** Sprite ảnh thật đứng thẳng, gốc ở đáy: dựng một nhóm instance cùng loại. */
+    const sprites = (
+      kind: number,
+      count: number,
+      mode: 'upright' | 'arch',
+      group: Group,
+      pose: (i: number) => { height: number },
+    ) => {
+      const mesh = new InstancedMesh(geometry.sprite, materials.sprite(kind, mode), count)
+      fill(mesh, random, WHITE, (i) => {
+        const { height } = pose(i)
+        dummy.scale.set(height * FLORA[kind].aspect, height, 1)
+      })
+      place(mesh, group)
+    }
 
-    // Cỏ: đậm hơn ở gần lối đi, thưa dần ra hai bên.
-    const grass = new InstancedMesh(geometry.blade, materials.grass, BASE_COUNTS.grass)
-    fill(grass, random, GRASS_TINTS, () => {
+    // Cỏ: những cụm cỏ thật, dày hơn ở gần lối đi, thưa dần ra hai bên.
+    sprites(FLORA_GRASS, BASE_COUNTS.grass, 'upright', root, () => {
       const z = zAt()
       const side = random() < 0.5 ? -1 : 1
       dummy.position.set(pathX(z) + side * (0.9 + random() ** 1.6 * 9), 0, z)
-      dummy.rotation.y = random() * Math.PI
-      const height = 0.35 + random() * 0.6
-      dummy.scale.set(0.8 + random() * 0.8, height, 1)
+      dummy.rotation.set(0, (random() - 0.5) * 0.9, 0)
+      return { height: 0.4 + random() * 0.45 }
     })
-    place(grass, root)
 
-    // Hoa đồng nội lẫn trong cỏ: nhiều loại (hoa năm cánh, cúc, anh túc đỏ, lưu ly xanh) để đồng cỏ không đơn điệu.
-    const WHITE_TINTS = [new Color('#ffffff'), new Color('#fff8f0')]
-    const meadowKinds: Array<{ geometry: BufferGeometry; count: number; tints: Color[]; size: number }> = [
-      { geometry: geometry.flower, count: BASE_COUNTS.meadow, tints: BLOOM_TINTS, size: 0.24 },
-      { geometry: geometry.daisy, count: BASE_COUNTS.daisy, tints: WHITE_TINTS, size: 0.26 },
-      { geometry: geometry.poppy, count: BASE_COUNTS.poppy, tints: WHITE_TINTS, size: 0.3 },
-      { geometry: geometry.forgetMeNot, count: BASE_COUNTS.forgetMeNot, tints: WHITE_TINTS, size: 0.2 },
+    // Hoa đồng nội lẫn trong cỏ: nhiều loại ảnh thật để đồng cỏ không đơn điệu; anh túc đỏ và cosmos hồng rất ít.
+    const meadow: Array<{ kind: number; count: number; min: number; spread: number }> = [
+      { kind: FLORA_DAISY, count: BASE_COUNTS.daisy, min: 0.5, spread: 0.35 },
+      { kind: FLORA_FORGET_ME_NOT, count: BASE_COUNTS.forgetMeNot, min: 0.5, spread: 0.35 },
+      { kind: FLORA_DELPHINIUM, count: BASE_COUNTS.delphinium, min: 0.7, spread: 0.45 },
+      { kind: 6, count: BASE_COUNTS.cosmos, min: 0.5, spread: 0.3 },
+      
     ]
-    for (const kind of meadowKinds) {
-      const mesh = new InstancedMesh(kind.geometry, materials.meadow, kind.count)
-      fill(mesh, random, kind.tints, () => {
+    for (const item of meadow) {
+      sprites(item.kind, item.count, 'upright', root, () => {
         const z = zAt()
         const side = random() < 0.5 ? -1 : 1
-        dummy.position.set(pathX(z) + side * (0.8 + random() ** 1.5 * 8), 0.4 + random() * 0.55, z)
-        dummy.rotation.set((random() - 0.5) * 0.5, (random() - 0.5) * 0.5, random() * Math.PI * 2)
-        const size = kind.size + random() * 0.22
-        dummy.scale.set(size, size, 1)
+        dummy.position.set(pathX(z) + side * (0.8 + random() ** 1.5 * 8), 0, z)
+        dummy.rotation.set(0, (random() - 0.5) * 0.9, (random() - 0.5) * 0.25)
+        return { height: item.min + random() * item.spread }
       })
-      place(mesh, root)
     }
 
-    // Bướm và ong bay lượn quanh lối đi, ở độ cao ngang tầm mắt tới thấp hơn một chút.
-    const critters: Array<{ geometry: BufferGeometry; material: MeshBasicMaterial; count: number; tints: Color[]; size: number; low: number }> = [
-      {
-        geometry: geometry.butterfly,
-        material: materials.butterfly,
-        count: BASE_COUNTS.butterflies,
-        tints: BUTTERFLY_TINTS,
-        size: 0.4,
-        low: 0.9,
-      },
-      { geometry: geometry.bee, material: materials.bee, count: BASE_COUNTS.bees, tints: [new Color('#ffffff')], size: 0.3, low: 0.6 },
-    ]
-    for (const critter of critters) {
-      const mesh = new InstancedMesh(critter.geometry, critter.material, critter.count)
-      fill(mesh, random, critter.tints, () => {
-        const z = zAt()
-        dummy.position.set(pathX(z) + (random() - 0.5) * 5, critter.low + random() * 1.4, z)
-        const size = critter.size * (0.85 + random() * 0.4)
-        dummy.scale.set(size, size, 1)
-      })
-      place(mesh, root)
-    }
-
-    // Hai bức tường cây hoa dọc lối đi, bắt đầu xa đầu vườn một đoạn để lá không to và sát camera ngay sau ảnh hero.
-    const hedge = (material: MeshBasicMaterial, count: number, tints: Color[], leaf: boolean) => {
-      const mesh = new InstancedMesh(leaf ? geometry.leaf : geometry.flower, material, count)
-      fill(mesh, random, tints, () => {
+    // Hai bức tường cây hoa dọc lối đi: cành lá và bụi hoa thật, bắt đầu xa đầu vườn một đoạn để lá không to và sát
+    // camera ngay sau ảnh hero.
+    const hedge = (kind: number, count: number, leaf: boolean) => {
+      sprites(kind, count, 'upright', root, () => {
         const z = HEDGE_START - random() * (HEDGE_START - Z_END)
         const side = random() < 0.5 ? -1 : 1
         // Gom thấp xuống gần mặt đất thành bụi cây (không rải lên cao thành lá bay lơ lửng).
-        dummy.position.set(pathX(z) + side * (5 + random() * 2.6), random() ** 2.6 * 3.6, z + (random() - 0.5) * 1.5)
-        dummy.rotation.set((random() - 0.5) * 0.4, (random() - 0.5) * 0.6, random() * Math.PI * 2)
-        const size = leaf ? 0.7 + random() * 0.5 : 0.5 + random() * 0.4
-        dummy.scale.set(leaf ? size * 0.5 : size, size, 1)
+        dummy.position.set(pathX(z) + side * (5 + random() * 2.6), random() ** 2.6 * 2.4, z + (random() - 0.5) * 1.5)
+        dummy.rotation.set(0, (random() - 0.5) * 0.7, (random() - 0.5) * 0.8)
+        return { height: leaf ? 0.32 + random() * 0.25 : 0.6 + random() * 0.45 }
       })
-      place(mesh, root)
     }
-    hedge(materials.hedgeLeaf, BASE_COUNTS.hedgeLeaves, LEAF_TINTS, true)
-    hedge(materials.hedgeBloom, BASE_COUNTS.hedgeBlooms, BLOOM_TINTS, false)
+    hedge(FLORA_LEAF, BASE_COUNTS.hedgeLeaves, true)
+    hedge(FLORA_DAISY, Math.round(BASE_COUNTS.hedgeBlooms * 0.4), false)
+    hedge(FLORA_DELPHINIUM, Math.round(BASE_COUNTS.hedgeBlooms * 0.3), false)
+    hedge(FLORA_FORGET_ME_NOT, Math.round(BASE_COUNTS.hedgeBlooms * 0.3), false)
 
     // Cổng vòm hoa: instance xen kẽ giữa các cổng (i % số cổng) để cắt bớt theo mật độ vẫn giữ đủ cả ba cổng.
-    const archPose = (leaf: boolean) => (i: number) => {
-      const z = ARCH_Z[i % ARCH_Z.length]
-      const cx = pathX(z)
-      const ringShare = (Math.PI * ARCH_RADIUS) / (Math.PI * ARCH_RADIUS + 2 * ARCH_POST)
-      const offset = -0.1 + random() * 0.4
-      if (random() < 0.12) {
-        const angle = Math.PI / 2 + (random() - 0.5) * 0.7
-        const r = ARCH_RADIUS + 0.1 + random() * 0.3
-        dummy.position.set(cx + Math.cos(angle) * r, ARCH_POST + Math.sin(angle) * r, z + 0.1 + random() * 0.3)
-      } else if (random() < ringShare) {
-        const angle = random() * Math.PI
-        const r = ARCH_RADIUS + offset
-        dummy.position.set(cx + Math.cos(angle) * r, ARCH_POST + Math.sin(angle) * r, z + (random() - 0.5) * 0.5)
-      } else {
-        const side = random() < 0.5 ? -1 : 1
-        dummy.position.set(cx + side * (ARCH_RADIUS + offset), random() * ARCH_POST, z + (random() - 0.5) * 0.5)
-      }
-      dummy.rotation.set((random() - 0.5) * 0.6, (random() - 0.5) * 0.6, random() * Math.PI * 2)
-      const size = leaf ? 0.6 + random() * 0.3 : 0.5 + random() * 0.3
-      dummy.scale.set(leaf ? size * 0.5 : size, size, 1)
+    // Sprite mọc từ khung cổng ra ngoài: gốc ở điểm trên khung, trục dọc của sprite hướng ra ngoài theo pháp tuyến.
+    const archGroup = (kinds: number[], count: number, leaf: boolean) => {
+      kinds.forEach((kind, ki) => {
+        const share = Math.round((count * ARCH_Z.length) / kinds.length)
+        sprites(kind, share, 'arch', root, (i) => {
+          const z = ARCH_Z[i % ARCH_Z.length]
+          const cx = pathX(z)
+          const ringShare = (Math.PI * ARCH_RADIUS) / (Math.PI * ARCH_RADIUS + 2 * ARCH_POST)
+          const offset = -0.05 + random() * 0.25
+          let x: number
+          let y: number
+          let outward: number
+          if (random() < ringShare) {
+            const angle = random() * Math.PI
+            const r = ARCH_RADIUS + offset
+            x = cx + Math.cos(angle) * r
+            y = ARCH_POST + Math.sin(angle) * r
+            outward = angle
+          } else {
+            const side = random() < 0.5 ? -1 : 1
+            x = cx + side * (ARCH_RADIUS + offset)
+            y = random() * ARCH_POST
+            outward = side > 0 ? 0 : Math.PI
+          }
+          dummy.position.set(x, y, z + (random() - 0.5) * 0.4)
+          // Sprite mọc theo pháp tuyến hướng ra; lá nghiêng xen kẽ hai phía, hoa lệch nhẹ.
+          dummy.rotation.set(0, 0, outward - Math.PI / 2 + (leaf ? (ki + i) % 2 ? 0.7 : -0.7 : 0) + (random() - 0.5) * 0.5)
+          return { height: leaf ? 0.55 + random() * 0.3 : 0.4 + random() * 0.3 }
+        })
+      })
     }
-    const archLeaves = new InstancedMesh(geometry.leaf, materials.archLeaf, ARCH_Z.length * ARCH_LEAVES)
-    const archFlowers = new InstancedMesh(geometry.flower, materials.archBloom, ARCH_Z.length * ARCH_FLOWERS)
-    fill(archLeaves, random, LEAF_TINTS, archPose(true))
-    fill(archFlowers, random, BLOOM_TINTS, archPose(false))
-    place(archLeaves, root)
-    place(archFlowers, root)
+    archGroup([FLORA_LEAF], ARCH_LEAVES, true)
+    archGroup([FLORA_DAISY, FLORA_FORGET_ME_NOT, FLORA_DELPHINIUM], ARCH_FLOWERS, false)
   }
 
   /** Phấn hoa: dựng đủ số điểm một lần, cắt bằng drawRange theo mật độ. */
@@ -452,29 +375,38 @@ export function createGardenScene(): SceneModule {
       context.scene.add(root)
 
       const geometry = {
-        blade: track(createBladeGeometry()),
-        flower: track(createFlowerGeometry()),
-        leaf: track(createLeafGeometry()),
-        daisy: track(createDaisyGeometry()),
-        poppy: track(createPoppyGeometry()),
-        forgetMeNot: track(createForgetMeNotGeometry()),
-        butterfly: track(createButterflyGeometry()),
-        bee: track(createBeeGeometry()),
+        sprite: track(spritePlane()),
       }
-      // Hoa lá là hình học tô màu theo đỉnh (không texture, không cắt alpha): mép khử răng cưa chuẩn, vẽ nhẹ trên điện thoại.
-      const foliage = () => new MeshBasicMaterial({ vertexColors: true, side: DoubleSide })
-      const swayable = track(withSway(foliage(), timeUniform, 'sprite'))
-      // Hoa/lá của cổng vòm co nhỏ ở khoảng xa hơn cỏ và tường cây để vẫn đọc được hình vòm mà không thành vòng chấm trắng.
-      const arch = track(withSway(foliage(), timeUniform, 'static', ARCH_FADE))
+      // Hoa lá là sprite ảnh thật có nền trong suốt (xem flora-sprites.ts). Mỗi loại một vật liệu; texture thật được gán khi
+      // tải xong (trước đó sprite trong suốt). Hoa lá tô màu theo đỉnh của bướm, ong thì giữ nguyên hình học tự dựng.
+      const blank = track(createBlankTexture())
+      const spriteMaterials = new Map<string, MeshBasicMaterial>()
+      const spriteMaterial = (kind: number, mode: 'upright' | 'arch') => {
+        const key = `${kind}-${mode}`
+        let material = spriteMaterials.get(key)
+        if (!material) {
+          const base = new MeshBasicMaterial({ map: blank, transparent: true, depthWrite: false, side: DoubleSide })
+          material = track(
+            withSoftColor(
+              mode === 'arch' ? withSway(base, timeUniform, 'static', ARCH_FADE) : withSway(base, timeUniform, 'blade'),
+            ),
+          )
+          material.userData.kind = kind
+          spriteMaterials.set(key, material)
+        }
+        return material
+      }
+      floraRefHeld = true
+      acquireFlora(context.renderer.capabilities.getMaxAnisotropy()).then((list) => {
+        if (!ctx) return
+        spriteMaterials.forEach((material) => {
+          material.map = list[material.userData.kind as number] ?? blank
+          material.needsUpdate = true
+        })
+        ctx.invalidate()
+      })
       const materials = {
-        grass: track(withSway(new MeshBasicMaterial({ vertexColors: true, side: DoubleSide }), timeUniform, 'blade')),
-        meadow: swayable,
-        hedgeBloom: swayable,
-        hedgeLeaf: swayable,
-        archBloom: arch,
-        archLeaf: arch,
-        butterfly: track(withFlight(foliage(), timeUniform, 'butterfly')),
-        bee: track(withFlight(foliage(), timeUniform, 'bee')),
+        sprite: spriteMaterial,
       }
       const pollenMaterial = track(
         new PointsMaterial({ map: track(createPollenTexture()), size: 0.16, transparent: true, depthWrite: false, opacity: 0.55, color: '#fff6dc' }),
@@ -482,7 +414,8 @@ export function createGardenScene(): SceneModule {
 
       // Mặt đất trải từ sát camera tới cuối vườn. Không ghi độ sâu và vẽ trước mọi vật trong suốt khác: nó là nền, không
       // được che phấn hoa hay làm hỏng lúc ảnh hero hiện dần. Nó mờ đi đúng bằng độ hiện của ảnh (xem update).
-      const groundDepth = GROUND_NEAR - (Z_END - 10)
+      // Mặt đất kéo xa quá tầm sương mù: chân trời tan vào màu nền thay vì một đường cắt cứng.
+      const groundDepth = GROUND_NEAR - (Z_END - 90)
       groundMaterial = track(new MeshBasicMaterial({ color: '#dbe8cf', transparent: true, depthWrite: false }))
       ground = new Mesh(track(new PlaneGeometry(80, groundDepth)), groundMaterial)
       ground.rotation.x = -Math.PI / 2
@@ -511,7 +444,7 @@ export function createGardenScene(): SceneModule {
 
       // Xa mờ dần về màu nền trang (đổi theo giờ trong ngày).
       // Gần hơn: chi tiết ở xa tan vào màu nền thay vì thành đốm lấm tấm.
-      fog = new Fog(0xfbf6f0, 7, 32)
+      fog = new Fog(0xfbf6f0, 9, 36)
       context.scene.fog = fog
 
       // Biên dịch shader và tải buffer ngay bây giờ (cảnh còn hiện), thay vì ở khung hình đầu tiên sau khi cổng mở,
@@ -565,6 +498,10 @@ export function createGardenScene(): SceneModule {
         ctx.scene.fog = null
       }
       shared.splice(0).forEach((item) => item.dispose())
+      if (floraRefHeld) {
+        floraRefHeld = false
+        releaseFlora()
+      }
       ctx = null
       pollen = null
       pollenData = null

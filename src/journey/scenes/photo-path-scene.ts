@@ -4,10 +4,6 @@ import {
   Group,
   Mesh,
   MeshBasicMaterial,
-  Points,
-  PointsMaterial,
-  Float32BufferAttribute,
-  BufferGeometry,
   Raycaster,
   SRGBColorSpace,
   Vector2,
@@ -16,14 +12,17 @@ import {
   type ShapeGeometry,
 } from 'three'
 import type { AssetImage } from '../../config/assets'
-import { mulberry32 } from '../../lib/seeded-random'
 import { gate } from '../gate-state'
 import { JOURNEY_DEPTH } from '../journey-path'
 import { clamp01 } from '../scroll-progress'
 import { photoPicker } from '../photo-state'
 import type { QualityTier, TierSettings } from '../quality-tier'
 import type { JourneyFrame, SceneContext, SceneModule } from '../scene-module'
+import { wishLights } from '../wish-lights-state'
 import { ARCH_HEIGHT, createArchBorderGeometry, createArchPhotoGeometry } from './photo-arch-geometry'
+import { acquireFlora, releaseFlora } from './flora-sprites'
+import { createWreath, createWreathShared, type Wreath, type WreathShared } from './photo-wreath'
+import { createWishTags, type WishTags } from './photo-wish-tags'
 
 /**
  * Đường hầm vòm ảnh: mỗi ảnh đứng NGAY GIỮA lối đi như một cổng vòm, ảnh gần nhất to đầy màn hình, ảnh kế tiếp nhỏ hơn
@@ -40,11 +39,11 @@ const LOAD_FROM = 0.34
 const LOAD_TO = 0.86
 
 /** Lệch nhỏ khỏi tim đường và nghiêng nhẹ xen kẽ để các khung không xếp thẳng như một dãy cửa. */
-const SWAY = 0.12
-const YAW = 0.06
-/** Tâm khung thấp hơn tầm mắt một chút: chừa chỗ cho tiêu đề phía trên và nút phía dưới. */
-const CENTER_BELOW_EYE = 0.1
-const FRAME_SCALE = 0.92
+const SWAY = 0
+const YAW = 0
+/** Tâm khung cao hơn tầm mắt: chừa chỗ cho thẻ lời chúc phía dưới màn hình (âm = cao hơn). */
+const CENTER_BELOW_EYE = -0.05
+const FRAME_SCALE = 0.7
 /** Khoảng cách (đơn vị đường đi) từ camera tới khung: hiện dần từ xa, tan dần khi camera đi xuyên qua. */
 const FADE_IN_FAR = 5.8
 const FADE_IN_NEAR = 4.6
@@ -55,7 +54,6 @@ const MAX_PHOTOS = 8
 
 const BORDER_COLOR = new Color('#f6e7d4')
 const WARM_TINT = new Color('#ffe2c2')
-const MOTE_COUNT = 90
 
 interface PhotoFrame {
   group: Group
@@ -63,6 +61,9 @@ interface PhotoFrame {
   faceMaterial: MeshBasicMaterial
   borderMaterial: MeshBasicMaterial
   geometry: ShapeGeometry
+  wreath: Wreath
+  tags: WishTags
+  baseYaw: number
   baseY: number
   phase: number
   /** Vị trí trên đường camera (tiến độ 0..1). */
@@ -112,9 +113,9 @@ export function createPhotoPathScene({ photos }: { photos: readonly AssetImage[]
   let loadToken = 0
   let loaded = false
   let showing = false
-  let motes: Points | null = null
-  let moteMaterial: PointsMaterial | null = null
   let sharedBorder: ShapeGeometry | null = null
+  let wreathShared: WreathShared | null = null
+  let floraHeld = false
   let lastTod = -1
   const raycaster = new Raycaster()
   const pointer = new Vector2()
@@ -123,6 +124,10 @@ export function createPhotoPathScene({ photos }: { photos: readonly AssetImage[]
   const releaseTextures = () => {
     loadToken += 1
     loaded = false
+    if (floraHeld) {
+      floraHeld = false
+      releaseFlora()
+    }
     frames.forEach((frame, i) => {
       frame.faceMaterial.map = null
       frame.faceMaterial.needsUpdate = true
@@ -137,6 +142,13 @@ export function createPhotoPathScene({ photos }: { photos: readonly AssetImage[]
     const token = loadToken
     const side = textureSide(ctx.tier)
     const anisotropy = ctx.renderer.capabilities.getMaxAnisotropy()
+    floraHeld = true
+    acquireFlora(anisotropy).then((list) => {
+      // Đã giải phóng hoặc đã dỡ cảnh trong lúc chờ: nhả tham chiếu vừa lấy (bộ texture do kho dùng chung quản lý).
+      if (token !== loadToken || !ctx) return
+      wreathShared?.setTextures(list)
+      ctx.invalidate()
+    })
     items.forEach((photo, i) => {
       loadScaledTexture(photo.src, side, anisotropy)
         .then((texture) => {
@@ -159,6 +171,7 @@ export function createPhotoPathScene({ photos }: { photos: readonly AssetImage[]
 
   const buildFrames = (context: SceneContext) => {
     const borderGeometry = createArchBorderGeometry(BORDER_MARGIN)
+    wreathShared = createWreathShared()
     frames.push(
       ...items.map((photo, i): PhotoFrame => {
         const u = PATH_FROM + PATH_STEP * i
@@ -178,38 +191,21 @@ export function createPhotoPathScene({ photos }: { photos: readonly AssetImage[]
         face.userData.index = i
         const border = new Mesh(borderGeometry, borderMaterial)
         border.position.z = -0.015
+        const wreath = createWreath(wreathShared as WreathShared, 1234 + i * 97, context.settings.density < 0.5 ? 0.5 : 1)
+        const tags = createWishTags()
         const group = new Group()
-        group.add(border, face)
+        group.add(border, face, wreath.group, tags.group)
         group.position.copy(position)
         // Mặt khung hướng về camera đang tới (ngược chiều đi), nghiêng nhẹ xen kẽ.
         group.rotation.y = Math.atan2(-tangent.x, -tangent.z) + side * YAW
         group.scale.setScalar(FRAME_SCALE)
         group.visible = false
         root.add(group)
-        return { group, face, faceMaterial, borderMaterial, geometry, baseY, phase: i * 1.7, u }
+        return { group, face, faceMaterial, borderMaterial, geometry, wreath, tags, baseYaw: group.rotation.y, baseY, phase: i * 1.7, u }
       }),
     )
     // Viền dùng chung một geometry: giải phóng một lần.
     sharedBorder = borderGeometry
-  }
-
-  const buildMotes = (context: SceneContext) => {
-    const random = mulberry32(7919)
-    const positions = new Float32Array(MOTE_COUNT * 3)
-    const from = context.path.getPointAt(PATH_FROM - 0.02)
-    const to = context.path.getPointAt(PATH_FROM + PATH_STEP * (MAX_PHOTOS - 1) + 0.02)
-    for (let i = 0; i < MOTE_COUNT; i += 1) {
-      const t = random()
-      positions[i * 3] = from.x + (to.x - from.x) * t + (random() - 0.5) * 9
-      positions[i * 3 + 1] = 0.4 + random() * 3.4
-      positions[i * 3 + 2] = from.z + (to.z - from.z) * t + (random() - 0.5) * 3
-    }
-    const geometry = new BufferGeometry()
-    geometry.setAttribute('position', new Float32BufferAttribute(positions, 3))
-    moteMaterial = new PointsMaterial({ color: '#ffe7b0', size: 0.07, transparent: true, opacity: 0.75, depthWrite: false, fog: false })
-    motes = new Points(geometry, moteMaterial)
-    motes.frustumCulled = false
-    root.add(motes)
   }
 
   return {
@@ -220,7 +216,7 @@ export function createPhotoPathScene({ photos }: { photos: readonly AssetImage[]
     init(context) {
       ctx = context
       buildFrames(context)
-      buildMotes(context)
+      wishLights.setPhotoCount(items.length)
       root.visible = false
       context.scene.add(root)
 
@@ -253,6 +249,7 @@ export function createPhotoPathScene({ photos }: { photos: readonly AssetImage[]
         tint.setRGB(1, 1, 1).lerp(WARM_TINT, warmth)
       }
 
+      const activeId = wishLights.getActiveId()
       // Khoảng cách dọc đường tới khung (dương = còn ở phía trước camera).
       let focus = -1
       let focusAhead = Infinity
@@ -271,14 +268,21 @@ export function createPhotoPathScene({ photos }: { photos: readonly AssetImage[]
         frame.borderMaterial.opacity = opacity
         frame.group.visible = opacity > 0.01
         frame.group.position.y = frame.baseY + Math.sin(time * 0.8 + frame.phase) * 0.03
+        // Hoa nở khi ảnh tới và khép lại khi ảnh đi; thẻ nơ theo lời chúc của đúng ảnh này.
+        frame.wreath.setBloom(opacity ** 1.5)
+        frame.wreath.setOpacity(opacity)
+        // Xoay nhẹ quanh trục đứng: các lớp ở độ sâu khác nhau lệch nhau (parallax) dù camera chỉ đi thẳng.
+        frame.group.rotation.y = frame.baseYaw + Math.sin(time * 0.5 + frame.phase) * 0.07
+        frame.wreath.setTime(time)
+        const wishes = wishLights.wishesOfPhoto(i)
+        const activeIndex = wishes.findIndex((wish) => wish.id === activeId)
+        frame.tags.update(wishes.slice(0, 3).map((wish) => wish.name), activeIndex, opacity, time)
       })
       // Đã đi qua hết các ảnh thì nút "xem ảnh lớn" mở ảnh cuối.
       photoPicker.focus = focus >= 0 ? focus : frames.length - 1
-      if (motes) motes.rotation.y = Math.sin(time * 0.1) * 0.02
+      wishLights.setPhoto(photoPicker.focus)
     },
-    setQuality(_tier: QualityTier, settings: TierSettings) {
-      if (moteMaterial) moteMaterial.size = settings.density < 0.5 ? 0.09 : 0.07
-      if (motes) motes.visible = settings.density >= 0.5
+    setQuality(_tier: QualityTier, _settings: TierSettings) {
       // Đổi bậc giữa chừng: nạp lại ở độ phân giải mới khi cần.
       if (loaded) {
         releaseTextures()
@@ -293,16 +297,16 @@ export function createPhotoPathScene({ photos }: { photos: readonly AssetImage[]
         frame.geometry.dispose()
         frame.faceMaterial.dispose()
         frame.borderMaterial.dispose()
+        frame.wreath.dispose()
+        frame.tags.dispose()
       })
+      wreathShared?.dispose()
+      wreathShared = null
       sharedBorder?.dispose()
       sharedBorder = null
       frames.length = 0
-      motes?.geometry.dispose()
-      moteMaterial?.dispose()
       if (ctx) ctx.scene.remove(root)
       ctx = null
-      motes = null
-      moteMaterial = null
       showing = false
     },
   } satisfies SceneModule

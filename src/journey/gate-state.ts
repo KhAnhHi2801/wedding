@@ -35,7 +35,7 @@ export const gate = {
     set('closed')
   },
   /**
-   * Yêu cầu mở (chạm, cuộn, hết giờ chờ). Đang đóng thì bắt đầu mở; đang mở dở thì bỏ qua hiệu ứng, nhảy thẳng
+   * Yêu cầu mở (chỉ do khách chạm). Đang đóng thì bắt đầu mở; đang mở dở thì bỏ qua hiệu ứng, nhảy thẳng
    * tới trạng thái đã mở. Cổng chưa có (loading) thì chưa có gì để mở: bỏ qua.
    */
   requestOpen() {

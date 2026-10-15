@@ -82,7 +82,7 @@ export const weddingConfig = {
     },
   } satisfies { bride: BankAccount; groom: BankAccount },
   /** Đường dẫn nhạc nền trong `public/assets/music/`, vd. "/assets/music/nhac-nen.mp3"; null = không có nhạc, ẩn nút bật/tắt. Có file thì nhạc tự phát (fade-in) ở lần chạm đầu tiên. */
-  music: null as string | null,
+  music: "/assets/music/paulyudin-romantic-romantic-music-493488.mp3" as string | null,
   /**
    * Thông tin chia sẻ link (Zalo/Facebook). Được chèn vào HTML lúc build vì trình xem trước
    * link không chạy JavaScript.
