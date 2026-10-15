@@ -50,6 +50,8 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
+  /* Màn rộng: giữ phần đầu của ảnh, cắt phía đáy (chỗ có chữ). */
+  object-position: 50% 40%;
 }
 
 .hero-scrim {
@@ -136,8 +138,10 @@ html[data-journey='3d'] .hero-scrim {
   justify-content: center;
 }
 
-.hero:is([data-gate='loading'], [data-gate='closed'], [data-gate='opening']) .hero-photo,
-.hero:is([data-gate='loading'], [data-gate='closed'], [data-gate='opening']) .hero-scrim {
+.hero:is([data-gate='loading'], [data-gate='closed'], [data-gate='opening'])
+  .hero-photo,
+.hero:is([data-gate='loading'], [data-gate='closed'], [data-gate='opening'])
+  .hero-scrim {
   display: none;
 }
 
@@ -145,7 +149,8 @@ html[data-journey='3d'] .hero-scrim {
   cursor: pointer;
 }
 
-.hero:is([data-gate='loading'], [data-gate='closed'], [data-gate='opening']) .hero-inner {
+.hero:is([data-gate='loading'], [data-gate='closed'], [data-gate='opening'])
+  .hero-inner {
   /* Chữ viết thẳng lên hai cánh cổng (nền xanh nhạt, chữ ink), không có tấm nền; hoa chỉ ở chân và đỉnh cánh nên không đè chữ. */
   width: min(76vw, 340px);
   margin: 0 auto calc(var(--action-bar-h) + env(safe-area-inset-bottom) + 10vh);
@@ -154,7 +159,8 @@ html[data-journey='3d'] .hero-scrim {
   transition: opacity 0.35s ease;
 }
 
-.hero:is([data-gate='loading'], [data-gate='closed'], [data-gate='opening']) .petal-field {
+.hero:is([data-gate='loading'], [data-gate='closed'], [data-gate='opening'])
+  .petal-field {
   /* Cánh hoa HTML rơi đè lên chữ viết thẳng trên cánh cổng; cổng 3D đã có hoa của nó. */
   display: none;
 }
@@ -165,22 +171,27 @@ html[data-journey='3d'] .hero-scrim {
 }
 
 /* Lời mời đã có ở hero sau khi cổng mở, nên trên cổng chỉ để tên cô dâu chú rể. */
-.hero:is([data-gate='loading'], [data-gate='closed'], [data-gate='opening']) .hero-invite {
+.hero:is([data-gate='loading'], [data-gate='closed'], [data-gate='opening'])
+  .hero-invite {
   display: none;
 }
 
-.hero:is([data-gate='loading'], [data-gate='closed'], [data-gate='opening']) .hero-names {
-  font-size: clamp(1.7rem, 7.6vw, 2.4rem);
+.hero:is([data-gate='loading'], [data-gate='closed'], [data-gate='opening'])
+  .hero-names {
+  /* Đơn vị vw (không dùng rem) để cỡ chữ hệ thống lớn của Android không làm tên tràn khỏi cánh cổng. */
+  font-size: clamp(18px, 6.4vw, 38px);
   margin-bottom: 0;
   text-shadow: none;
 }
 
 /* Ngày tháng và nút xem lịch trình chỉ hiện khi cổng đã mở. */
-.hero:is([data-gate='loading'], [data-gate='closed'], [data-gate='opening']) .hero-cta {
+.hero:is([data-gate='loading'], [data-gate='closed'], [data-gate='opening'])
+  .hero-cta {
   display: none;
 }
 
-.hero:is([data-gate='loading'], [data-gate='closed'], [data-gate='opening']) .hero-date {
+.hero:is([data-gate='loading'], [data-gate='closed'], [data-gate='opening'])
+  .hero-date {
   display: none;
 }
 
@@ -188,30 +199,34 @@ html[data-journey='3d'] .hero-scrim {
  * Trên cổng: tên cô dâu ở cánh trái, tên chú rể ở cánh phải, dấu & là khoá cổng ở giữa. Mỗi tên tự xuống dòng theo từng
  * chữ (min-content) để vừa bề rộng một cánh thay vì dàn ra.
  */
-.hero:is([data-gate='loading'], [data-gate='closed'], [data-gate='opening']) .hero-names {
+.hero:is([data-gate='loading'], [data-gate='closed'], [data-gate='opening'])
+  .hero-names {
   display: grid;
-  grid-template-columns: 1fr auto 1fr;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
   align-items: center;
   column-gap: 0;
 }
 
-.hero:is([data-gate='loading'], [data-gate='closed'], [data-gate='opening']) .hero-name {
-  width: min-content;
+.hero:is([data-gate='loading'], [data-gate='closed'], [data-gate='opening'])
+  .hero-name {
+  min-width: 0;
   margin: 0 auto;
   line-height: 1.15;
+  overflow-wrap: anywhere;
 }
 
-.hero:is([data-gate='loading'], [data-gate='closed'], [data-gate='opening']) .hero-amp {
+.hero:is([data-gate='loading'], [data-gate='closed'], [data-gate='opening'])
+  .hero-amp {
   display: grid;
   place-items: center;
-  width: 2.4rem;
-  height: 2.4rem;
+  width: 1.9em;
+  height: 1.9em;
   margin: 0;
   border-radius: 50%;
   background: #f6efdf;
   border: 2px solid #d9b96c;
   box-shadow: 0 2px 8px rgba(59, 42, 45, 0.25);
-  font-size: 1.25rem;
+  font-size: 0.8em;
   line-height: 1;
 }
 
@@ -238,12 +253,16 @@ html[data-journey='3d'] .hero-scrim {
 
 /* Điện thoại nằm ngang (rất thấp): thu nhỏ tấm bảng và hạ nút để không đè lên nhau. */
 @media (max-height: 520px) {
-  .hero:is([data-gate='loading'], [data-gate='closed'], [data-gate='opening']) .hero-inner {
+  .hero:is([data-gate='loading'], [data-gate='closed'], [data-gate='opening'])
+    .hero-inner {
     width: min(50vw, 300px);
-    margin-bottom: calc(var(--action-bar-h) + env(safe-area-inset-bottom) + 56px);
+    margin-bottom: calc(
+      var(--action-bar-h) + env(safe-area-inset-bottom) + 56px
+    );
   }
 
-  .hero:is([data-gate='loading'], [data-gate='closed'], [data-gate='opening']) .hero-names {
+  .hero:is([data-gate='loading'], [data-gate='closed'], [data-gate='opening'])
+    .hero-names {
     font-size: 1.6rem;
   }
 
@@ -258,20 +277,24 @@ html[data-journey='3d'] .hero-scrim {
  * và chỉ có khi chạy 3D: không có 3D thì không có thuộc tính này và trang hiện đầy đủ ngay.
  */
 html:is([data-gate='loading'], [data-gate='closed'], [data-gate='opening']),
-html:is([data-gate='loading'], [data-gate='closed'], [data-gate='opening']) body {
+html:is([data-gate='loading'], [data-gate='closed'], [data-gate='opening'])
+  body {
   overflow: hidden;
 }
 
-html:is([data-gate='loading'], [data-gate='closed'], [data-gate='opening']) body {
+html:is([data-gate='loading'], [data-gate='closed'], [data-gate='opening'])
+  body {
   padding-bottom: 0;
 }
 
-html:is([data-gate='loading'], [data-gate='closed'], [data-gate='opening']) :is(main, .action-bar, .music-toggle) {
+html:is([data-gate='loading'], [data-gate='closed'], [data-gate='opening'])
+  :is(main, .action-bar, .music-toggle) {
   display: none;
 }
 
 /* Cổng mở xong thì nội dung hiện dần (chỉ opacity: thanh lối tắt và nút nhạc là phần tử cố định). */
-html[data-journey='3d'][data-gate='open'] :is(main, .action-bar, .music-toggle) {
+html[data-journey='3d'][data-gate='open']
+  :is(main, .action-bar, .music-toggle) {
   animation: content-in 0.9s ease both;
 }
 
@@ -404,7 +427,12 @@ html[data-journey='3d'] .garden-walk {
 .section-sky {
   max-width: none;
   color: #fff;
-  background: linear-gradient(180deg, var(--surface) 0, var(--sky-top) 80px, var(--sky-bottom) 100%);
+  background: linear-gradient(
+    180deg,
+    var(--surface) 0,
+    var(--sky-top) 80px,
+    var(--sky-bottom) 100%
+  );
   padding-top: calc(var(--space-5) + 40px);
 }
 
@@ -473,7 +501,8 @@ html[data-journey='3d'] .garden-walk {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 4px;
-  padding: 6px 6px calc(6px + env(safe-area-inset-bottom));
+  /* Nền phủ hết bề ngang, ba mục gom vào giữa (tối đa 560px) để không rải ra hai mép trên màn rộng. */
+  padding: 6px max(6px, calc((100% - 560px) / 2)) calc(6px + env(safe-area-inset-bottom));
   background: rgba(255, 255, 255, 0.94);
   border-top: 1px solid var(--surface);
   backdrop-filter: blur(6px);
@@ -493,6 +522,11 @@ html[data-journey='3d'] .garden-walk {
   color: var(--ink);
   text-decoration: none;
   border-radius: 10px;
+}
+
+.action-bar-icon {
+  width: 22px;
+  height: 22px;
 }
 
 .action-bar a.active {
@@ -649,7 +683,8 @@ html[data-journey='3d'] .garden-walk {
 
 .wish-form {
   padding: var(--space-2) max(20px, env(safe-area-inset-right))
-    calc(var(--space-3) + env(safe-area-inset-bottom)) max(20px, env(safe-area-inset-left));
+    calc(var(--space-3) + env(safe-area-inset-bottom))
+    max(20px, env(safe-area-inset-left));
 }
 
 .sheet-handle {
@@ -753,8 +788,18 @@ html[data-journey='3d'] .garden-walk {
   pointer-events: none;
   /* Cánh hoa sáng nằm trên lớp tối nền nên giữ nguyên màu tươi ở nửa trên; xuống vùng có chữ thì mờ bớt
      để chữ trắng vẫn đọc rõ. */
-  -webkit-mask-image: linear-gradient(#000 0%, #000 42%, rgba(0, 0, 0, 0.3) 66%, rgba(0, 0, 0, 0.3) 100%);
-  mask-image: linear-gradient(#000 0%, #000 42%, rgba(0, 0, 0, 0.3) 66%, rgba(0, 0, 0, 0.3) 100%);
+  -webkit-mask-image: linear-gradient(
+    #000 0%,
+    #000 42%,
+    rgba(0, 0, 0, 0.3) 66%,
+    rgba(0, 0, 0, 0.3) 100%
+  );
+  mask-image: linear-gradient(
+    #000 0%,
+    #000 42%,
+    rgba(0, 0, 0, 0.3) 66%,
+    rgba(0, 0, 0, 0.3) 100%
+  );
 }
 
 .petal-defs {
@@ -773,7 +818,8 @@ html[data-journey='3d'] .garden-walk {
 /* Lớp 2: lắc ngang qua lại như đung đưa theo gió. */
 .petal-sway {
   display: block;
-  animation: petal-sway var(--sway-dur) ease-in-out var(--sway-delay) infinite alternate;
+  animation: petal-sway var(--sway-dur) ease-in-out var(--sway-delay) infinite
+    alternate;
 }
 
 /* Lớp 3: nghiêng nhẹ và xoay tròn. Chu kỳ khác nhau ở mỗi lớp nên tổng hợp lại không lặp máy móc. */
@@ -782,7 +828,8 @@ html[data-journey='3d'] .garden-walk {
   width: 100%;
   height: auto;
   opacity: var(--opacity);
-  animation: petal-tumble var(--tumble-dur) linear var(--tumble-delay) infinite var(--spin);
+  animation: petal-tumble var(--tumble-dur) linear var(--tumble-delay) infinite
+    var(--spin);
 }
 
 .petal-field.is-paused .petal-fall,
@@ -852,7 +899,8 @@ html[data-journey='3d'] .garden-walk {
 
 .section-photos > .section-title,
 .section-photos > .section-sub {
-  padding: 0 max(20px, env(safe-area-inset-right)) 0 max(20px, env(safe-area-inset-left));
+  padding: 0 max(20px, env(safe-area-inset-right)) 0
+    max(20px, env(safe-area-inset-left));
 }
 
 .thread-gallery {
@@ -862,7 +910,8 @@ html[data-journey='3d'] .garden-walk {
   gap: 76px;
   max-width: 520px;
   margin: 0 auto;
-  padding: 36px max(20px, env(safe-area-inset-right)) 8px max(20px, env(safe-area-inset-left));
+  padding: 36px max(20px, env(safe-area-inset-right)) 8px
+    max(20px, env(safe-area-inset-left));
 }
 
 .photo-card {
@@ -1121,12 +1170,14 @@ html[data-journey='3d'] .garden-walk {
 }
 
 .section-corridor > .section-title {
-  padding: 96px max(20px, env(safe-area-inset-right)) 0 max(20px, env(safe-area-inset-left));
+  padding: 96px max(20px, env(safe-area-inset-right)) 0
+    max(20px, env(safe-area-inset-left));
   color: #fff;
 }
 
 .section-corridor > .section-sub {
-  padding: 0 max(20px, env(safe-area-inset-right)) 0 max(20px, env(safe-area-inset-left));
+  padding: 0 max(20px, env(safe-area-inset-right)) 0
+    max(20px, env(safe-area-inset-left));
   color: #f0dce2;
 }
 
@@ -1200,7 +1251,9 @@ html[data-journey='3d'] .garden-walk {
   padding: 6px 12px;
   background: #1c1219;
   color: #ffd6e0;
-  font: 12px / 1.4 ui-monospace, monospace;
+  font:
+    12px / 1.4 ui-monospace,
+    monospace;
   text-align: center;
 }
 
@@ -1215,7 +1268,11 @@ html[data-journey='3d'] .garden-walk {
   height: 400px;
   overflow: hidden;
   border-radius: var(--radius-card);
-  background: radial-gradient(120% 80% at 50% 100%, rgba(255, 170, 120, 0.22), rgba(40, 20, 45, 0.55));
+  background: radial-gradient(
+    120% 80% at 50% 100%,
+    rgba(255, 170, 120, 0.22),
+    rgba(40, 20, 45, 0.55)
+  );
 }
 
 .wish-sky-canvas {

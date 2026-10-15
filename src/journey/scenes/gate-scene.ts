@@ -60,6 +60,11 @@ const PHOTO_ASPECT_FALLBACK = 2 / 3
  * để phủ kín màn hình (xem coverSize).
  */
 const PHOTO_CENTER = { y: EYE_HEIGHT, z: -3 }
+/**
+ * Khi màn rộng hơn ảnh, phần thừa theo chiều dọc bị cắt. Neo ảnh lệch về phía trên (như object-position: 50% 40%) để không
+ * mất đầu cô dâu chú rể; chữ ở đáy hero nên cắt phía dưới ít hại hơn. 0 = sát mép trên, 0.5 = căn giữa.
+ */
+const PHOTO_FOCAL_Y = 0.4
 
 interface Sample {
   x: number
@@ -316,6 +321,10 @@ export function createGateScene({ heroSrc }: GateSceneOptions): SceneModule {
     if (!ctx || !photo) return
     const { width, height } = coverSize(ctx.camera.aspect, ctx.camera.fov, CAMERA_DISTANCE - PHOTO_CENTER.z, photoAspect)
     photo.scale.set(width, height, 1)
+    const visibleHeight = 2 * (CAMERA_DISTANCE - PHOTO_CENTER.z) * Math.tan((ctx.camera.fov * Math.PI) / 360)
+    const overflow = Math.max(0, height - visibleHeight)
+    // Dịch ảnh xuống sao cho phần bị cắt dồn về phía đáy theo PHOTO_FOCAL_Y.
+    photo.position.y = PHOTO_CENTER.y - overflow * (0.5 - PHOTO_FOCAL_Y)
   }
 
   const buildPhoto = (context: SceneContext) => {
