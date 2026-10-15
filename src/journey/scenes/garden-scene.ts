@@ -17,18 +17,16 @@ import {
   PointsMaterial,
   SRGBColorSpace,
   TorusGeometry,
-  type Texture,
   type CatmullRomCurve3,
   type IUniform,
 } from 'three'
 import { mulberry32 } from '../../lib/seeded-random'
 import { gate } from '../gate-state'
-import { hasMsaa } from '../msaa'
 import { photoState } from '../photo-state'
 import type { QualityTier, TierSettings } from '../quality-tier'
 import type { JourneyFrame, SceneContext, SceneModule } from '../scene-module'
 import { todRgb } from '../time-of-day'
-import { createBloomTexture, createLeafTexture } from './gate-textures'
+import { createFlowerGeometry, createLeafGeometry } from './foliage-geometry'
 
 /** Khu vườn nằm sau mặt phẳng ảnh ở đầu trang (z = -3) và kéo dài theo đường camera. */
 const Z_START = -4.5
@@ -211,7 +209,7 @@ export function createGardenScene(): SceneModule {
 
   /** Dựng toàn bộ instance ở mật độ đầy đủ. */
   const buildInstances = (
-    geometry: { blade: BufferGeometry; sprite: BufferGeometry },
+    geometry: { blade: BufferGeometry; flower: BufferGeometry; leaf: BufferGeometry },
     materials: Record<'grass' | 'meadow' | 'hedgeBloom' | 'hedgeLeaf' | 'archBloom' | 'archLeaf', MeshBasicMaterial>,
   ) => {
     const random = mulberry32(777)
@@ -230,7 +228,7 @@ export function createGardenScene(): SceneModule {
     place(grass, root)
 
     // Hoa đồng nội lẫn trong cỏ.
-    const meadow = new InstancedMesh(geometry.sprite, materials.meadow, BASE_COUNTS.meadow)
+    const meadow = new InstancedMesh(geometry.flower, materials.meadow, BASE_COUNTS.meadow)
     fill(meadow, random, BLOOM_TINTS, () => {
       const z = zAt()
       const side = random() < 0.5 ? -1 : 1
@@ -243,7 +241,7 @@ export function createGardenScene(): SceneModule {
 
     // Hai bức tường cây hoa dọc lối đi, bắt đầu xa đầu vườn một đoạn để lá không to và sát camera ngay sau ảnh hero.
     const hedge = (material: MeshBasicMaterial, count: number, tints: Color[], leaf: boolean) => {
-      const mesh = new InstancedMesh(geometry.sprite, material, count)
+      const mesh = new InstancedMesh(leaf ? geometry.leaf : geometry.flower, material, count)
       fill(mesh, random, tints, () => {
         const z = HEDGE_START - random() * (HEDGE_START - Z_END)
         const side = random() < 0.5 ? -1 : 1
@@ -276,8 +274,8 @@ export function createGardenScene(): SceneModule {
       const size = leaf ? 0.55 + random() * 0.3 : 0.4 + random() * 0.25
       dummy.scale.set(leaf ? size * 0.5 : size, size, 1)
     }
-    const archLeaves = new InstancedMesh(geometry.sprite, materials.archLeaf, ARCH_Z.length * ARCH_LEAVES)
-    const archFlowers = new InstancedMesh(geometry.sprite, materials.archBloom, ARCH_Z.length * ARCH_FLOWERS)
+    const archLeaves = new InstancedMesh(geometry.leaf, materials.archLeaf, ARCH_Z.length * ARCH_LEAVES)
+    const archFlowers = new InstancedMesh(geometry.flower, materials.archBloom, ARCH_Z.length * ARCH_FLOWERS)
     fill(archLeaves, random, LEAF_TINTS, archPose(true))
     fill(archFlowers, random, BLOOM_TINTS, archPose(false))
     place(archLeaves, root)
@@ -326,20 +324,23 @@ export function createGardenScene(): SceneModule {
       pathX = createPathLookup(context.path)
       context.scene.add(root)
 
-      const geometry = { blade: track(createBladeGeometry()), sprite: track(new PlaneGeometry(1, 1)) }
-      const bloom = track(createBloomTexture())
-      const leaf = track(createLeafTexture())
-      // alphaToCoverage chỉ khi thật sự có MSAA: không có thì nó rải mép hoa/lá thành các chấm (kiểu màn che).
-      const alphaToCoverage = hasMsaa(context.renderer)
-      const sprite = (map: Texture) => new MeshBasicMaterial({ map, alphaTest: 0.35, alphaToCoverage, side: DoubleSide })
+      const geometry = {
+        blade: track(createBladeGeometry()),
+        flower: track(createFlowerGeometry()),
+        leaf: track(createLeafGeometry()),
+      }
+      // Hoa lá là hình học tô màu theo đỉnh (không texture, không cắt alpha): mép khử răng cưa chuẩn, vẽ nhẹ trên điện thoại.
+      const foliage = () => new MeshBasicMaterial({ vertexColors: true, side: DoubleSide })
+      const swayable = track(withSway(foliage(), timeUniform, 'sprite'))
+      // Hoa/lá của cổng vòm co nhỏ ở khoảng xa hơn cỏ và tường cây để vẫn đọc được hình vòm mà không thành vòng chấm trắng.
+      const arch = track(withSway(foliage(), timeUniform, 'static', ARCH_FADE))
       const materials = {
         grass: track(withSway(new MeshBasicMaterial({ vertexColors: true, side: DoubleSide }), timeUniform, 'blade')),
-        meadow: track(withSway(sprite(bloom), timeUniform, 'sprite')),
-        hedgeBloom: track(withSway(sprite(bloom), timeUniform, 'sprite')),
-        hedgeLeaf: track(withSway(sprite(leaf), timeUniform, 'sprite')),
-        // Hoa/lá của cổng vòm co nhỏ ở khoảng cách xa hơn cỏ và tường cây để vẫn đọc được hình vòm mà không thành vòng chấm trắng.
-        archBloom: track(withSway(sprite(bloom), timeUniform, 'static', ARCH_FADE)),
-        archLeaf: track(withSway(sprite(leaf), timeUniform, 'static', ARCH_FADE)),
+        meadow: swayable,
+        hedgeBloom: swayable,
+        hedgeLeaf: swayable,
+        archBloom: arch,
+        archLeaf: arch,
       }
       const pollenMaterial = track(
         new PointsMaterial({ map: track(createPollenTexture()), size: 0.16, transparent: true, depthWrite: false, opacity: 0.55, color: '#fff6dc' }),

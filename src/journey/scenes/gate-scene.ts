@@ -30,12 +30,11 @@ import {
   type GateDims,
 } from '../gate-math'
 import { gate } from '../gate-state'
-import { hasMsaa } from '../msaa'
 import { journeyProgress } from '../journey-progress'
 import { photoState } from '../photo-state'
 import type { QualityTier, TierSettings } from '../quality-tier'
 import type { JourneyFrame, SceneContext, SceneModule } from '../scene-module'
-import { createBloomTexture, createLeafTexture } from './gate-textures'
+import { createFlowerGeometry, createLeafGeometry } from './foliage-geometry'
 
 export interface GateSceneOptions {
   /** Ảnh cặp đôi hiện ra sau khi cổng mở; thiếu thì chỉ có cổng. */
@@ -188,8 +187,8 @@ export function createGateScene({ heroSrc }: GateSceneOptions): SceneModule {
   let photo: Mesh | null = null
   let photoMaterial: MeshBasicMaterial | null = null
   let flowerGeometry: BufferGeometry | null = null
-  let flowerMaterial: MeshBasicMaterial | null = null
-  let leafMaterial: MeshBasicMaterial | null = null
+  let leafGeometry: BufferGeometry | null = null
+  let foliageMaterial: MeshBasicMaterial | null = null
 
   let elapsed = 0
   let openElapsed = 0
@@ -211,7 +210,7 @@ export function createGateScene({ heroSrc }: GateSceneOptions): SceneModule {
   }
 
   const buildParts = (d: GateDims, density: number) => {
-    if (!flowerGeometry || !flowerMaterial || !leafMaterial) return
+    if (!flowerGeometry || !leafGeometry || !foliageMaterial) return
     disposeParts()
     const counts = instanceCounts(density, d.countFactor)
     const random = mulberry32(20261220)
@@ -225,7 +224,7 @@ export function createGateScene({ heroSrc }: GateSceneOptions): SceneModule {
       { group: doorRight, count: counts.doorFlowers, sampler: (r) => sampleDoor(r, 1, d), leaf: false },
     ]
     parts = specs.map(({ group, count, sampler, leaf }) => {
-      const mesh = new InstancedMesh(flowerGeometry!, leaf ? leafMaterial! : flowerMaterial!, count)
+      const mesh = new InstancedMesh(leaf ? leafGeometry! : flowerGeometry!, foliageMaterial!, count)
       // Ma trận từng instance thay đổi nên hộp bao của hình gốc không đại diện được: tắt cắt theo khung nhìn.
       mesh.frustumCulled = false
       const layout = makeLayout(count, random, sampler, leaf, maxDelay, d.sizeFactor)
@@ -352,13 +351,10 @@ export function createGateScene({ heroSrc }: GateSceneOptions): SceneModule {
       ctx = context
       settingsRef = context.settings
       context.scene.add(root)
-      flowerGeometry = track(new PlaneGeometry(1, 1))
-      const bloom = track(createBloomTexture())
-      const leaf = track(createLeafTexture())
-      // alphaToCoverage chỉ khi thật sự có MSAA: không có thì nó rải mép hoa/lá thành các chấm (kiểu màn che).
-      const alphaToCoverage = hasMsaa(context.renderer)
-      flowerMaterial = track(new MeshBasicMaterial({ map: bloom, alphaTest: 0.35, alphaToCoverage, side: DoubleSide }))
-      leafMaterial = track(new MeshBasicMaterial({ map: leaf, alphaTest: 0.35, alphaToCoverage, side: DoubleSide }))
+      // Hoa lá là hình học tô màu theo đỉnh (không texture, không cắt alpha): mép khử răng cưa chuẩn, vẽ nhẹ trên điện thoại.
+      flowerGeometry = track(createFlowerGeometry())
+      leafGeometry = track(createLeafGeometry())
+      foliageMaterial = track(new MeshBasicMaterial({ vertexColors: true, side: DoubleSide }))
       buildPhoto(context)
 
       // Mở lại trang giữa chừng (đã cuộn xuống): bỏ qua cổng, vào thẳng cảnh sau cổng, ảnh hiện ngay.
