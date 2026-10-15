@@ -22,6 +22,7 @@ import {
 } from 'three'
 import { mulberry32 } from '../../lib/seeded-random'
 import { gate } from '../gate-state'
+import { hasMsaa } from '../msaa'
 import { photoState } from '../photo-state'
 import type { QualityTier, TierSettings } from '../quality-tier'
 import type { JourneyFrame, SceneContext, SceneModule } from '../scene-module'
@@ -313,8 +314,9 @@ export function createGardenScene(): SceneModule {
       const geometry = { blade: track(createBladeGeometry()), sprite: track(new PlaneGeometry(1, 1)) }
       const bloom = track(createBloomTexture())
       const leaf = track(createLeafTexture())
-      // alphaToCoverage: mép hoa/lá mịn nhờ khử răng cưa đa mẫu (máy dùng bậc thấp không có thì vẫn cắt alpha như thường).
-      const sprite = (map: CanvasTexture) => new MeshBasicMaterial({ map, alphaTest: 0.35, alphaToCoverage: true, side: DoubleSide })
+      // alphaToCoverage chỉ khi thật sự có MSAA: không có thì nó rải mép hoa/lá thành các chấm (kiểu màn che).
+      const alphaToCoverage = hasMsaa(context.renderer)
+      const sprite = (map: CanvasTexture) => new MeshBasicMaterial({ map, alphaTest: 0.35, alphaToCoverage, side: DoubleSide })
       const materials = {
         grass: track(withSway(new MeshBasicMaterial({ vertexColors: true, side: DoubleSide }), timeUniform, 'blade')),
         meadow: track(withSway(sprite(bloom), timeUniform, 'sprite')),

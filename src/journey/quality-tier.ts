@@ -13,8 +13,9 @@ export interface TierSettings {
 
 const SETTINGS: Record<QualityTier, TierSettings> = {
   high: { maxDpr: 2, antialias: true, density: 1, bloom: true },
-  medium: { maxDpr: 1.5, antialias: true, density: 0.6, bloom: true },
-  low: { maxDpr: 1, antialias: false, density: 0.3, bloom: false },
+  // Điện thoại tầm trung: giữ độ phân giải 2x và khử răng cưa, chỉ giảm số lượng; hạ độ phân giải làm cả cảnh vỡ hạt.
+  medium: { maxDpr: 2, antialias: true, density: 0.75, bloom: true },
+  low: { maxDpr: 1.5, antialias: false, density: 0.4, bloom: false },
 }
 
 export const tierSettings = (tier: QualityTier): TierSettings => SETTINGS[tier]
@@ -36,9 +37,10 @@ export interface DeviceHints {
 
 /** Bậc khởi đầu theo phần cứng; bộ đo FPS sẽ hạ tiếp nếu thực tế vẫn chậm. */
 export function pickInitialTier({ coarse, hardwareConcurrency, deviceMemory }: DeviceHints): QualityTier {
-  const fewCores = hardwareConcurrency !== undefined && hardwareConcurrency <= 4
   const lowMemory = deviceMemory !== undefined && deviceMemory <= 2
-  if (coarse) return fewCores || lowMemory ? 'low' : 'medium'
+  // Không suy ra "máy yếu" từ số nhân CPU trên điện thoại: Safari iPhone luôn báo ~4 nhân (che số thật để chống theo
+  // dõi) nên mọi iPhone sẽ bị xếp nhầm vào bậc thấp. Bộ đo FPS sẽ tự hạ bậc nếu máy thật sự không kịp.
+  if (coarse) return lowMemory ? 'low' : 'medium'
   return hardwareConcurrency !== undefined && hardwareConcurrency <= 2 ? 'medium' : 'high'
 }
 

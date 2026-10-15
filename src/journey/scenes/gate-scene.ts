@@ -30,6 +30,7 @@ import {
   type GateDims,
 } from '../gate-math'
 import { gate } from '../gate-state'
+import { hasMsaa } from '../msaa'
 import { journeyProgress } from '../journey-progress'
 import { photoState } from '../photo-state'
 import type { QualityTier, TierSettings } from '../quality-tier'
@@ -354,8 +355,10 @@ export function createGateScene({ heroSrc }: GateSceneOptions): SceneModule {
       flowerGeometry = track(new PlaneGeometry(1, 1))
       const bloom = track(createBloomTexture())
       const leaf = track(createLeafTexture())
-      flowerMaterial = track(new MeshBasicMaterial({ map: bloom, alphaTest: 0.35, alphaToCoverage: true, side: DoubleSide }))
-      leafMaterial = track(new MeshBasicMaterial({ map: leaf, alphaTest: 0.35, alphaToCoverage: true, side: DoubleSide }))
+      // alphaToCoverage chỉ khi thật sự có MSAA: không có thì nó rải mép hoa/lá thành các chấm (kiểu màn che).
+      const alphaToCoverage = hasMsaa(context.renderer)
+      flowerMaterial = track(new MeshBasicMaterial({ map: bloom, alphaTest: 0.35, alphaToCoverage, side: DoubleSide }))
+      leafMaterial = track(new MeshBasicMaterial({ map: leaf, alphaTest: 0.35, alphaToCoverage, side: DoubleSide }))
       buildPhoto(context)
 
       // Mở lại trang giữa chừng (đã cuộn xuống): bỏ qua cổng, vào thẳng cảnh sau cổng, ảnh hiện ngay.
