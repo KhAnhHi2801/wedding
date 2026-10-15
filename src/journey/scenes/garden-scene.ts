@@ -17,6 +17,7 @@ import {
   PointsMaterial,
   SRGBColorSpace,
   TorusGeometry,
+  type Texture,
   type CatmullRomCurve3,
   type IUniform,
 } from 'three'
@@ -35,6 +36,10 @@ const Z_END = -64
 const GARDEN_LENGTH = Z_START - Z_END
 /** Tường cây hai bên lối đi bắt đầu từ đây (xa hơn đầu vườn). */
 const HEDGE_START = -12
+/** Khoảng cách (từ camera) bắt đầu và kết thúc việc co nhỏ cỏ, hoa, lá; xa hơn nữa thì không vẽ gì. */
+const FADE_START = 12
+const FADE_END = 22
+const ARCH_FADE = [15, 26] as const
 /** Quá tiến độ này camera đã ra khỏi vườn: ẩn cả cảnh và ngừng vẽ liên tục. */
 const GARDEN_VISIBLE_UNTIL = 0.62
 
@@ -105,11 +110,17 @@ function createPollenTexture(): CanvasTexture {
  * Làm vật liệu đung đưa theo gió ngay trong vertex shader: mỗi instance lắc lệch pha theo vị trí của nó, ngọn lắc nhiều
  * hơn gốc. Không phải cập nhật ma trận từng instance trên CPU mỗi khung hình.
  */
-function withSway(material: MeshBasicMaterial, uniform: IUniform<number>, mode: 'blade' | 'sprite'): MeshBasicMaterial {
+function withSway(
+  material: MeshBasicMaterial,
+  uniform: IUniform<number>,
+  mode: 'blade' | 'sprite' | 'static',
+  fade: readonly [start: number, end: number] = [FADE_START, FADE_END],
+): MeshBasicMaterial {
   const height = mode === 'blade' ? 'position.y' : '(position.y + 0.5)'
-  const amount = mode === 'blade' ? '0.22' : '0.1'
+  // 'static': không đung đưa (hoa gắn trên khung cổng vòm), chỉ co nhỏ theo khoảng cách.
+  const amount = mode === 'blade' ? '0.22' : mode === 'sprite' ? '0.1' : '0.0'
   // Hai kiểu (cọng cỏ, sprite) dùng chung đoạn mã chèn nên cần khóa chương trình riêng, đừng để three đoán từ nguồn hàm.
-  material.customProgramCacheKey = () => `sway-${mode}`
+  material.customProgramCacheKey = () => `sway-${mode}-${fade[0]}-${fade[1]}`
   material.onBeforeCompile = (shader) => {
     shader.uniforms.uTime = uniform
     shader.vertexShader = `uniform float uTime;\n${shader.vertexShader}`.replace(
@@ -118,7 +129,11 @@ function withSway(material: MeshBasicMaterial, uniform: IUniform<number>, mode: 
       float swayPhase = uTime * 1.4 + instanceMatrix[3].x * 0.8 + instanceMatrix[3].z * 0.55;
       float swayHeight = ${height};
       transformed.x += sin(swayPhase) * ${amount} * swayHeight * swayHeight;
-      transformed.z += cos(swayPhase * 0.8) * ${amount} * 0.45 * swayHeight * swayHeight;`,
+      transformed.z += cos(swayPhase * 0.8) * ${amount} * 0.45 * swayHeight * swayHeight;
+      // Co nhỏ dần rồi biến mất khi ra xa: vật thể dưới ~1-2 pixel răng cưa và nhấp nháy thành các đốm li ti, nên cho
+      // chúng tan hẳn trước khi tới mức đó (phần xa còn lại do sương mù và các cổng vòm hoa đảm nhiệm).
+      vec4 swayCenter = modelViewMatrix * instanceMatrix * vec4(0.0, 0.0, 0.0, 1.0);
+      transformed *= 1.0 - smoothstep(${fade[0].toFixed(1)}, ${fade[1].toFixed(1)}, -swayCenter.z);`,
     )
   }
   return material
@@ -316,14 +331,15 @@ export function createGardenScene(): SceneModule {
       const leaf = track(createLeafTexture())
       // alphaToCoverage chỉ khi thật sự có MSAA: không có thì nó rải mép hoa/lá thành các chấm (kiểu màn che).
       const alphaToCoverage = hasMsaa(context.renderer)
-      const sprite = (map: CanvasTexture) => new MeshBasicMaterial({ map, alphaTest: 0.35, alphaToCoverage, side: DoubleSide })
+      const sprite = (map: Texture) => new MeshBasicMaterial({ map, alphaTest: 0.35, alphaToCoverage, side: DoubleSide })
       const materials = {
         grass: track(withSway(new MeshBasicMaterial({ vertexColors: true, side: DoubleSide }), timeUniform, 'blade')),
         meadow: track(withSway(sprite(bloom), timeUniform, 'sprite')),
         hedgeBloom: track(withSway(sprite(bloom), timeUniform, 'sprite')),
         hedgeLeaf: track(withSway(sprite(leaf), timeUniform, 'sprite')),
-        archBloom: track(sprite(bloom)),
-        archLeaf: track(sprite(leaf)),
+        // Hoa/lá của cổng vòm co nhỏ ở khoảng cách xa hơn cỏ và tường cây để vẫn đọc được hình vòm mà không thành vòng chấm trắng.
+        archBloom: track(withSway(sprite(bloom), timeUniform, 'static', ARCH_FADE)),
+        archLeaf: track(withSway(sprite(leaf), timeUniform, 'static', ARCH_FADE)),
       }
       const pollenMaterial = track(
         new PointsMaterial({ map: track(createPollenTexture()), size: 0.16, transparent: true, depthWrite: false, opacity: 0.55, color: '#fff6dc' }),
@@ -360,7 +376,7 @@ export function createGardenScene(): SceneModule {
 
       // Xa mờ dần về màu nền trang (đổi theo giờ trong ngày).
       // Gần hơn: chi tiết ở xa tan vào màu nền thay vì thành đốm lấm tấm.
-      fog = new Fog(0xfbf6f0, 8, 44)
+      fog = new Fog(0xfbf6f0, 7, 32)
       context.scene.fog = fog
 
       // Biên dịch shader và tải buffer ngay bây giờ (cảnh còn hiện), thay vì ở khung hình đầu tiên sau khi cổng mở,
