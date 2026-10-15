@@ -23,6 +23,7 @@ Người dùng cho phép đập đi xây lại. Plan này **thay thế** phase 3
 
 - **Outcome:** khách mở link thấy cổng vòm hoa 3D mang tên mình, cổng mở, camera bước vào và đi hết hành trình trong cùng một thế giới 3D; thông tin quan trọng luôn tới được trong ≤1 chạm.
 - **Constraints:** Three.js là công nghệ chủ đạo cho mọi cảnh; ảnh thật làm nhân vật, không model nhân vật; **một** WebGL context cho cả trang (in-app browser hay mất context khi có nhiều canvas); phân bậc chất lượng (quality tier) theo thiết bị; fallback HTML khi không có WebGL hoặc `prefers-reduced-motion`; ≥30fps máy tầm trung; in-app Zalo/Facebook, 4G; giữ API và Sheet lời chúc; chữ ≥16px (giờ/địa chỉ ≥18px), vùng chạm ≥44px, tương phản AA.
+- **Không viết và không chạy test (người dùng quyết định):** toàn bộ test đã bị xóa khỏi repo; trong plan này và các plan sau KHÔNG tạo test mới, KHÔNG chạy test, KHÔNG giao việc test cho subagent. Kiểm tra bằng `tsc`, `lint`, `build` và xem trực tiếp trên trình duyệt. Mọi chỗ nhắc `npm test`, "có test", `tester` trong các phase hiểu là bỏ.
 - **Non-goals:** backend mới, model 3D nhân vật, mini-game, WebGPU (WebGL2 để tương thích Zalo/Facebook), deploy, nội dung thật ngoài ảnh (QR, thông tin sự kiện).
 - **Acceptance:** xem Success Criteria.
 
@@ -65,12 +66,13 @@ Sau phase 1, các phase 2-5 khác file nên có thể làm song song, nhưng ch�
 
 ## Success Criteria
 
-- [ ] Cổng 3D hiện kèm tên khách; mở bằng chạm, cuộn hoặc tự mở; camera đi xuyên cổng
+- [ ] Vào trang chỉ thấy cổng 3D kèm lời mời đích danh; mở bằng chạm, cuộn hoặc tự mở; **nội dung website chỉ hiện sau khi cổng mở xong**
 - [ ] Toàn bộ hành trình ở **một** canvas, nền trời chuyển liên tục ngày → hoàng hôn, không điểm đổi cảnh đột ngột
 - [ ] Phần ảnh ≤ ~25% chiều dài trang (hiện 61%)
 - [ ] Mỗi lời chúc là một bóng đèn trên dây; gửi xong, đèn của khách sáng ngay trong tầm nhìn
 - [ ] Giờ, địa điểm, chỉ đường ≤1 chạm từ màn hình đầu và từ thanh hành động
 - [ ] Fallback: no-WebGL, context bị mất, reduced-motion đều ra trang HTML dùng được đầy đủ
+- [ ] `tsc`, `lint`, `build` xanh (không có test, xem mục "Không viết và không chạy test")
 - [ ] LCP < ~2.5s trên 4G giả lập; tải ban đầu (trước khi cổng mở) < ~1.5MB; không ảnh > ~250KB
 - [ ] ≥30fps với CPU throttle 4x ở tier trung; context mất thì tự phục hồi hoặc chuyển fallback
 - [ ] Ít nhất 2 người thật (có một người lớn tuổi) tìm được địa điểm và gửi lời chúc không cần hướng dẫn

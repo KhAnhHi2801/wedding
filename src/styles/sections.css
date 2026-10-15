@@ -106,6 +106,155 @@
   text-shadow: 0 1px 8px rgba(0, 0, 0, 0.5);
 }
 
+/*
+ * Hero khi có cổng 3D. Cổng là thứ khách thấy đầu tiên, ảnh cặp đôi chỉ lộ ra khi cổng mở, nên trước đó (3 trạng thái
+ * "chưa mở" dưới đây) HTML không hiện ảnh mà chỉ có tấm bảng lời mời hình vòm trên nền kem:
+ *   loading: đang tải cảnh 3D (chưa có cổng), cùng bố cục với `closed` để cổng hiện ra liền mạch
+ *   closed:  cổng đóng, có nút "Mở thiệp"
+ *   opening: cổng đang mở, chữ ẩn đi
+ *   open:    ảnh và cổng do cảnh 3D vẽ, chữ hiện lại ở đáy như bản không có 3D
+ * Không có 3D (không WebGL, giảm chuyển động, lỗi, quá lâu) thì trạng thái luôn là `open` và hero là bản HTML cổ điển.
+ */
+.hero-open {
+  display: none;
+}
+
+html[data-journey='3d'] .hero {
+  background: transparent;
+}
+
+html[data-journey='3d'] .hero-photo {
+  display: none;
+}
+
+html[data-journey='3d'] .hero-scrim {
+  transition: opacity 0.8s ease;
+}
+
+.hero:is([data-gate='loading'], [data-gate='closed'], [data-gate='opening']) {
+  background: transparent;
+  justify-content: center;
+}
+
+.hero:is([data-gate='loading'], [data-gate='closed'], [data-gate='opening']) .hero-photo,
+.hero:is([data-gate='loading'], [data-gate='closed'], [data-gate='opening']) .hero-scrim {
+  display: none;
+}
+
+.hero:is([data-gate='closed'], [data-gate='opening']) {
+  cursor: pointer;
+}
+
+.hero:is([data-gate='loading'], [data-gate='closed'], [data-gate='opening']) .hero-inner {
+  /* Tấm bảng nhỏ treo giữa cổng: chừa hoa và cánh cổng 3D lộ ra xung quanh. */
+  width: min(76vw, 310px);
+  margin: 0 auto calc(var(--action-bar-h) + env(safe-area-inset-bottom) + 12vh);
+  /* Đệm trên và hai bên đủ lớn để dòng lời mời nằm trong phần rộng của vòm, không chạm đường bo. */
+  padding: 64px 34px 28px;
+  border-radius: 150px 150px 20px 20px;
+  background: rgba(251, 246, 240, 0.93);
+  box-shadow: 0 12px 40px rgba(59, 42, 45, 0.25);
+  color: var(--ink);
+  transition: opacity 0.35s ease;
+}
+
+.hero[data-gate='opening'] :is(.hero-inner, .hero-open) {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.hero:is([data-gate='loading'], [data-gate='closed'], [data-gate='opening']) .hero-invite {
+  font-size: 0.95rem;
+  letter-spacing: 0;
+  text-shadow: none;
+}
+
+.hero:is([data-gate='loading'], [data-gate='closed'], [data-gate='opening']) .hero-names {
+  font-size: clamp(1.9rem, 8.5vw, 2.5rem);
+  margin-bottom: 0;
+  text-shadow: none;
+}
+
+/* Ngày tháng và nút xem lịch trình chỉ hiện khi cổng đã mở. */
+.hero:is([data-gate='loading'], [data-gate='closed'], [data-gate='opening']) :is(.hero-date, .hero-cta) {
+  display: none;
+}
+
+/* Nút mở thiệp nằm dưới cổng, ngay trên thanh hành động; chưa có cổng (loading) thì chưa có nút. */
+.hero:is([data-gate='closed'], [data-gate='opening']) .hero-open {
+  position: absolute;
+  left: 50%;
+  bottom: calc(var(--action-bar-h) + env(safe-area-inset-bottom) + 20px);
+  transform: translateX(-50%);
+  display: inline-flex;
+  transition: opacity 0.35s ease;
+  box-shadow: 0 6px 20px rgba(59, 42, 45, 0.3);
+}
+
+/* Điện thoại nằm ngang (rất thấp): thu nhỏ tấm bảng và hạ nút để không đè lên nhau. */
+@media (max-height: 520px) {
+  .hero:is([data-gate='loading'], [data-gate='closed'], [data-gate='opening']) .hero-inner {
+    width: min(50vw, 300px);
+    margin-bottom: calc(var(--action-bar-h) + env(safe-area-inset-bottom) + 56px);
+    padding: 40px 28px 14px;
+  }
+
+  .hero:is([data-gate='loading'], [data-gate='closed'], [data-gate='opening']) .hero-names {
+    font-size: 1.6rem;
+  }
+
+  .hero:is([data-gate='closed'], [data-gate='opening']) .hero-open {
+    bottom: calc(var(--action-bar-h) + env(safe-area-inset-bottom) + 8px);
+  }
+}
+
+/*
+ * Khi vào trang chỉ có cổng hoa; toàn bộ nội dung còn lại (lịch trình, ảnh, lời chúc, quà, thanh lối tắt, nút nhạc) ẩn
+ * và trang không cuộn được cho tới khi cổng mở xong. Thuộc tính data-gate trên <html> do gate-state.ts ghi đồng bộ,
+ * và chỉ có khi chạy 3D: không có 3D thì không có thuộc tính này và trang hiện đầy đủ ngay.
+ */
+html:is([data-gate='loading'], [data-gate='closed'], [data-gate='opening']),
+html:is([data-gate='loading'], [data-gate='closed'], [data-gate='opening']) body {
+  overflow: hidden;
+}
+
+html:is([data-gate='loading'], [data-gate='closed'], [data-gate='opening']) body {
+  padding-bottom: 0;
+}
+
+html:is([data-gate='loading'], [data-gate='closed'], [data-gate='opening']) :is(main, .action-bar, .music-toggle) {
+  display: none;
+}
+
+/* Cổng mở xong thì nội dung hiện dần (chỉ opacity: thanh lối tắt và nút nhạc là phần tử cố định). */
+html[data-journey='3d'][data-gate='open'] :is(main, .action-bar, .music-toggle) {
+  animation: content-in 0.9s ease both;
+}
+
+@keyframes content-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+html[data-journey='3d'] .hero[data-gate='open'] .hero-inner {
+  animation: hero-text-in 0.9s ease 0.2s both;
+}
+
+@keyframes hero-text-in {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
 /* ---------- sự kiện ---------- */
 .group-title {
   font-family: var(--font-serif);

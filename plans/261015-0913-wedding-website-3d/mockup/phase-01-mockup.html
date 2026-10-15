@@ -1,226 +1,678 @@
 <!doctype html>
 <html lang="vi">
+
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Mockup phase 1 - 375px</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600&family=Playfair+Display:ital,wght@0,500;0,600;1,500&display=swap&subset=vietnamese" rel="stylesheet">
-<style>
-:root{
-  --bg:#FBF6F0; --surface:#EBCFCB; --surface-deep:#C98B8B; --accent:#B76E79; --accent-strong:#9E5560;
-  --ink:#3B2A2D; --ink-soft:#6B5458;
-  --sky-top:#7A4A63; --sky-bottom:#C98B8B;
-  --serif:'Playfair Display',Georgia,serif; --sans:'Be Vietnam Pro',system-ui,sans-serif;
-}
-*{box-sizing:border-box;margin:0}
-body{background:#2b2224;font-family:var(--sans);color:var(--ink);line-height:1.55;font-size:16px}
-.toolbar{position:sticky;top:0;z-index:50;background:#1d1517;color:#f3e9e4;padding:10px 12px;font-size:13px;display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:center}
-.toolbar button{background:#3b2a2d;color:#f3e9e4;border:1px solid #6b5458;border-radius:6px;padding:6px 10px;font:inherit;cursor:pointer}
-.toolbar button[aria-pressed=true]{background:var(--accent-strong);border-color:var(--accent-strong)}
-.phone{width:375px;margin:16px auto;background:var(--bg);position:relative;overflow:hidden;border-radius:18px;box-shadow:0 10px 40px #0008}
-.note{position:absolute;right:6px;background:#fff8;border:1px dashed var(--accent-strong);color:var(--accent-strong);font-size:10px;line-height:1.3;padding:2px 5px;border-radius:4px;max-width:120px;z-index:3}
-section{position:relative;padding:40px 20px}
-h2{font-family:var(--serif);font-weight:500;font-size:28px;line-height:1.2;color:var(--accent-strong);text-align:center;margin-bottom:6px}
-.sub{text-align:center;color:var(--ink-soft);margin-bottom:24px}
-/* hero */
-.hero{min-height:640px;padding:0;color:#fff;background:linear-gradient(180deg,#00000022,#3b2a2dcc),linear-gradient(135deg,#c98b8b,#8d5a63);display:flex;flex-direction:column;justify-content:flex-end;text-align:center}
-.hero .photo-label{position:absolute;top:16px;left:0;right:0;font-size:12px;opacity:.8}
-.hero .inner{padding:0 20px 56px}
-.hero .invite{font-size:14px;letter-spacing:.04em;margin-bottom:14px}
-.hero .invite b{font-weight:600;font-size:17px}
-.hero h1{font-family:var(--serif);font-weight:500;font-size:44px;line-height:1.1;margin-bottom:8px}
-.hero h1 i{font-size:30px;display:block;margin:2px 0}
-.hero .date{font-size:18px;margin-bottom:22px}
-.dots span{position:absolute;border-radius:50%;background:var(--surface-deep);opacity:.7}
-/* buttons */
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:48px;padding:0 22px;border-radius:999px;border:0;font:600 16px var(--sans);color:#fff;background:var(--accent-strong);text-decoration:none;cursor:pointer}
-.btn.ghost{background:transparent;color:var(--accent-strong);border:1.5px solid var(--accent-strong)}
-/* events */
-.group-title{font-family:var(--serif);font-size:22px;color:var(--ink);margin:24px 0 10px;border-left:4px solid var(--surface-deep);padding-left:10px}
-.card{background:#fff;border:1px solid var(--surface);border-radius:14px;padding:16px;margin-bottom:12px}
-.card .t{font-weight:600;font-size:18px}
-.card .time{font-size:20px;color:var(--accent-strong);font-weight:600;margin:4px 0}
-.card .addr{font-size:18px;margin-bottom:12px}
-.card .row{display:flex;gap:8px;flex-wrap:wrap}
-.map-ph{margin-top:10px;height:120px;border-radius:10px;background:repeating-linear-gradient(45deg,#f3e6e2,#f3e6e2 10px,#fbf6f0 10px,#fbf6f0 20px);display:none;align-items:center;justify-content:center;font-size:13px;color:var(--ink-soft)}
-.card.open .map-ph{display:flex}
-/* gallery */
-.gallery{background:var(--surface)}
-.gallery .arc{display:flex;gap:10px;justify-content:center;perspective:600px;margin:6px 0 10px}
-.gallery .arc div{width:92px;height:150px;border-radius:8px;background:linear-gradient(160deg,#fff8,#c98b8b88);border:1px solid #fff9;display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--ink-soft)}
-.gallery .arc div:nth-child(1){transform:rotateY(35deg) scale(.85)}
-.gallery .arc div:nth-child(2){transform:scale(1.1);height:170px}
-.gallery .arc div:nth-child(3){transform:rotateY(-35deg) scale(.85)}
-.hint{text-align:center;font-size:14px;color:var(--ink-soft)}
-/* wishes sky */
-.sky{background:linear-gradient(180deg,var(--bg) 0,var(--sky-top) 90px,var(--sky-bottom) 100%);color:#fff;padding-bottom:30px}
-.sky h2{color:#fff;margin-top:34px}
-.sky .sub{color:#f3e0e3}
-.lanterns{position:relative;height:300px}
-.lan{position:absolute;width:26px;height:34px;border-radius:12px 12px 8px 8px;background:#ffd9a0;box-shadow:0 0 18px 6px #ffd9a099}
-.card-pop{position:absolute;left:20px;right:20px;bottom:6px;background:#fffffff2;color:var(--ink);border-radius:12px;padding:12px 14px;font-size:15px}
-.card-pop b{display:block;color:var(--accent-strong)}
-.sky .btn{width:100%;background:#fff;color:var(--accent-strong);margin-top:10px}
-.list{background:var(--bg);color:var(--ink);padding:14px;border-radius:12px;margin-top:14px}
-.list .w{padding:8px 0;border-bottom:1px solid var(--surface)}
-.list .w:last-child{border:0}.list .w b{display:block;font-size:15px}
-.sheet{margin-top:14px;background:#fff;color:var(--ink);border-radius:18px 18px 0 0;padding:14px;box-shadow:0 -6px 24px #0004}
-.sheet .handle{width:40px;height:4px;border-radius:2px;background:var(--surface-deep);margin:0 auto 10px}
-.sheet input,.sheet textarea{width:100%;border:1.5px solid var(--surface);border-radius:10px;padding:12px;font:inherit;margin-bottom:8px;background:var(--bg)}
-.sheet .cnt{text-align:right;font-size:12px;color:var(--ink-soft);margin-top:-4px;margin-bottom:6px}
-/* gift */
-.gift .acc{background:#fff;border:1px solid var(--surface);border-radius:14px;padding:16px;text-align:center}
-.gift .who{font-family:var(--serif);font-size:22px;color:var(--accent-strong)}
-.gift .bank{font-size:15px;color:var(--ink-soft)}
-.gift .num{font-size:24px;font-weight:600;letter-spacing:.06em;margin:4px 0 12px}
-.qr{width:180px;height:180px;margin:14px auto 6px;background:repeating-conic-gradient(#3b2a2d 0 25%,#fff 0 50%) 0 0/20px 20px;border:8px solid #fff;outline:1px solid var(--surface)}
-.qr-cap{font-size:14px;color:var(--ink-soft)}
-/* action bar */
-.actionbar{position:sticky;bottom:0;z-index:20;background:#fffffff0;backdrop-filter:blur(6px);border-top:1px solid var(--surface);display:grid;grid-template-columns:repeat(3,1fr);padding:6px 6px calc(6px + env(safe-area-inset-bottom))}
-.actionbar a{min-height:48px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:13px;font-weight:500;color:var(--ink);text-decoration:none;gap:2px;border-radius:10px}
-.actionbar a.active{color:var(--accent-strong);background:var(--bg)}
-.hidden{display:none!important}
-.spec{max-width:375px;margin:0 auto 24px;color:#d9c9c5;font-size:13px;padding:0 12px}
-.spec h3{font-size:14px;margin:12px 0 4px;color:#fff}.spec li{margin-left:18px}
-</style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Mockup phase 1 - 375px</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600&family=Playfair+Display:ital,wght@0,500;0,600;1,500&display=swap&subset=vietnamese"
+    rel="stylesheet">
+  <style>
+    :root {
+      --bg: #FBF6F0;
+      --surface: #EBCFCB;
+      --surface-deep: #C98B8B;
+      --accent: #B76E79;
+      --accent-strong: #9E5560;
+      --ink: #3B2A2D;
+      --ink-soft: #6B5458;
+      --sky-top: #7A4A63;
+      --sky-bottom: #C98B8B;
+      --serif: 'Playfair Display', Georgia, serif;
+      --sans: 'Be Vietnam Pro', system-ui, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0
+    }
+
+    body {
+      background: #2b2224;
+      font-family: var(--sans);
+      color: var(--ink);
+      line-height: 1.55;
+      font-size: 16px
+    }
+
+    .toolbar {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      background: #1d1517;
+      color: #f3e9e4;
+      padding: 10px 12px;
+      font-size: 13px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      justify-content: center
+    }
+
+    .toolbar button {
+      background: #3b2a2d;
+      color: #f3e9e4;
+      border: 1px solid #6b5458;
+      border-radius: 6px;
+      padding: 6px 10px;
+      font: inherit;
+      cursor: pointer
+    }
+
+    .toolbar button[aria-pressed=true] {
+      background: var(--accent-strong);
+      border-color: var(--accent-strong)
+    }
+
+    .phone {
+      width: 375px;
+      margin: 16px auto;
+      background: var(--bg);
+      position: relative;
+      overflow: hidden;
+      border-radius: 18px;
+      box-shadow: 0 10px 40px #0008
+    }
+
+    .note {
+      position: absolute;
+      right: 6px;
+      background: #fff8;
+      border: 1px dashed var(--accent-strong);
+      color: var(--accent-strong);
+      font-size: 10px;
+      line-height: 1.3;
+      padding: 2px 5px;
+      border-radius: 4px;
+      max-width: 120px;
+      z-index: 3
+    }
+
+    section {
+      position: relative;
+      padding: 40px 20px
+    }
+
+    h2 {
+      font-family: var(--serif);
+      font-weight: 500;
+      font-size: 28px;
+      line-height: 1.2;
+      color: var(--accent-strong);
+      text-align: center;
+      margin-bottom: 6px
+    }
+
+    .sub {
+      text-align: center;
+      color: var(--ink-soft);
+      margin-bottom: 24px
+    }
+
+    /* hero */
+    .hero {
+      min-height: 640px;
+      padding: 0;
+      color: #fff;
+      background: linear-gradient(180deg, #00000022, #3b2a2dcc), linear-gradient(135deg, #c98b8b, #8d5a63);
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      text-align: center
+    }
+
+    .hero .photo-label {
+      position: absolute;
+      top: 16px;
+      left: 0;
+      right: 0;
+      font-size: 12px;
+      opacity: .8
+    }
+
+    .hero .inner {
+      padding: 0 20px 56px
+    }
+
+    .hero .invite {
+      font-size: 14px;
+      letter-spacing: .04em;
+      margin-bottom: 14px
+    }
+
+    .hero .invite b {
+      font-weight: 600;
+      font-size: 17px
+    }
+
+    .hero h1 {
+      font-family: var(--serif);
+      font-weight: 500;
+      font-size: 44px;
+      line-height: 1.1;
+      margin-bottom: 8px
+    }
+
+    .hero h1 i {
+      font-size: 30px;
+      display: block;
+      margin: 2px 0
+    }
+
+    .hero .date {
+      font-size: 18px;
+      margin-bottom: 22px
+    }
+
+    .dots span {
+      position: absolute;
+      border-radius: 50%;
+      background: var(--surface-deep);
+      opacity: .7
+    }
+
+    /* buttons */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      min-height: 48px;
+      padding: 0 22px;
+      border-radius: 999px;
+      border: 0;
+      font: 600 16px var(--sans);
+      color: #fff;
+      background: var(--accent-strong);
+      text-decoration: none;
+      cursor: pointer
+    }
+
+    .btn.ghost {
+      background: transparent;
+      color: var(--accent-strong);
+      border: 1.5px solid var(--accent-strong)
+    }
+
+    /* events */
+    .group-title {
+      font-family: var(--serif);
+      font-size: 22px;
+      color: var(--ink);
+      margin: 24px 0 10px;
+      border-left: 4px solid var(--surface-deep);
+      padding-left: 10px
+    }
+
+    .card {
+      background: #fff;
+      border: 1px solid var(--surface);
+      border-radius: 14px;
+      padding: 16px;
+      margin-bottom: 12px
+    }
+
+    .card .t {
+      font-weight: 600;
+      font-size: 18px
+    }
+
+    .card .time {
+      font-size: 20px;
+      color: var(--accent-strong);
+      font-weight: 600;
+      margin: 4px 0
+    }
+
+    .card .addr {
+      font-size: 18px;
+      margin-bottom: 12px
+    }
+
+    .card .row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap
+    }
+
+    .map-ph {
+      margin-top: 10px;
+      height: 120px;
+      border-radius: 10px;
+      background: repeating-linear-gradient(45deg, #f3e6e2, #f3e6e2 10px, #fbf6f0 10px, #fbf6f0 20px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      color: var(--ink-soft)
+    }
+
+    .card.open .map-ph {
+      display: flex
+    }
+
+    /* gallery */
+    .gallery {
+      background: var(--surface)
+    }
+
+    .gallery .arc {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      perspective: 600px;
+      margin: 6px 0 10px
+    }
+
+    .gallery .arc div {
+      width: 92px;
+      height: 150px;
+      border-radius: 8px;
+      background: linear-gradient(160deg, #fff8, #c98b8b88);
+      border: 1px solid #fff9;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      color: var(--ink-soft)
+    }
+
+    .gallery .arc div:nth-child(1) {
+      transform: rotateY(35deg) scale(.85)
+    }
+
+    .gallery .arc div:nth-child(2) {
+      transform: scale(1.1);
+      height: 170px
+    }
+
+    .gallery .arc div:nth-child(3) {
+      transform: rotateY(-35deg) scale(.85)
+    }
+
+    .hint {
+      text-align: center;
+      font-size: 14px;
+      color: var(--ink-soft)
+    }
+
+    /* wishes sky */
+    .sky {
+      background: linear-gradient(180deg, var(--bg) 0, var(--sky-top) 90px, var(--sky-bottom) 100%);
+      color: #fff;
+      padding-bottom: 30px
+    }
+
+    .sky h2 {
+      color: #fff;
+      margin-top: 34px
+    }
+
+    .sky .sub {
+      color: #f3e0e3
+    }
+
+    .lanterns {
+      position: relative;
+      height: 300px
+    }
+
+    .lan {
+      position: absolute;
+      width: 26px;
+      height: 34px;
+      border-radius: 12px 12px 8px 8px;
+      background: #ffd9a0;
+      box-shadow: 0 0 18px 6px #ffd9a099
+    }
+
+    .card-pop {
+      position: absolute;
+      left: 20px;
+      right: 20px;
+      bottom: 6px;
+      background: #fffffff2;
+      color: var(--ink);
+      border-radius: 12px;
+      padding: 12px 14px;
+      font-size: 15px
+    }
+
+    .card-pop b {
+      display: block;
+      color: var(--accent-strong)
+    }
+
+    .sky .btn {
+      width: 100%;
+      background: #fff;
+      color: var(--accent-strong);
+      margin-top: 10px
+    }
+
+    .list {
+      background: var(--bg);
+      color: var(--ink);
+      padding: 14px;
+      border-radius: 12px;
+      margin-top: 14px
+    }
+
+    .list .w {
+      padding: 8px 0;
+      border-bottom: 1px solid var(--surface)
+    }
+
+    .list .w:last-child {
+      border: 0
+    }
+
+    .list .w b {
+      display: block;
+      font-size: 15px
+    }
+
+    .sheet {
+      margin-top: 14px;
+      background: #fff;
+      color: var(--ink);
+      border-radius: 18px 18px 0 0;
+      padding: 14px;
+      box-shadow: 0 -6px 24px #0004
+    }
+
+    .sheet .handle {
+      width: 40px;
+      height: 4px;
+      border-radius: 2px;
+      background: var(--surface-deep);
+      margin: 0 auto 10px
+    }
+
+    .sheet input,
+    .sheet textarea {
+      width: 100%;
+      border: 1.5px solid var(--surface);
+      border-radius: 10px;
+      padding: 12px;
+      font: inherit;
+      margin-bottom: 8px;
+      background: var(--bg)
+    }
+
+    .sheet .cnt {
+      text-align: right;
+      font-size: 12px;
+      color: var(--ink-soft);
+      margin-top: -4px;
+      margin-bottom: 6px
+    }
+
+    /* gift */
+    .gift .acc {
+      background: #fff;
+      border: 1px solid var(--surface);
+      border-radius: 14px;
+      padding: 16px;
+      text-align: center
+    }
+
+    .gift .who {
+      font-family: var(--serif);
+      font-size: 22px;
+      color: var(--accent-strong)
+    }
+
+    .gift .bank {
+      font-size: 15px;
+      color: var(--ink-soft)
+    }
+
+    .gift .num {
+      font-size: 24px;
+      font-weight: 600;
+      letter-spacing: .06em;
+      margin: 4px 0 12px
+    }
+
+    .qr {
+      width: 180px;
+      height: 180px;
+      margin: 14px auto 6px;
+      background: repeating-conic-gradient(#3b2a2d 0 25%, #fff 0 50%) 0 0/20px 20px;
+      border: 8px solid #fff;
+      outline: 1px solid var(--surface)
+    }
+
+    .qr-cap {
+      font-size: 14px;
+      color: var(--ink-soft)
+    }
+
+    /* action bar */
+    .actionbar {
+      position: sticky;
+      bottom: 0;
+      z-index: 20;
+      background: #fffffff0;
+      backdrop-filter: blur(6px);
+      border-top: 1px solid var(--surface);
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      padding: 6px 6px calc(6px + env(safe-area-inset-bottom))
+    }
+
+    .actionbar a {
+      min-height: 48px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--ink);
+      text-decoration: none;
+      gap: 2px;
+      border-radius: 10px
+    }
+
+    .actionbar a.active {
+      color: var(--accent-strong);
+      background: var(--bg)
+    }
+
+    .hidden {
+      display: none !important
+    }
+
+    .spec {
+      max-width: 375px;
+      margin: 0 auto 24px;
+      color: #d9c9c5;
+      font-size: 13px;
+      padding: 0 12px
+    }
+
+    .spec h3 {
+      font-size: 14px;
+      margin: 12px 0 4px;
+      color: #fff
+    }
+
+    .spec li {
+      margin-left: 18px
+    }
+  </style>
 </head>
+
 <body>
-<div class="toolbar" role="group" aria-label="Chế độ xem mockup">
-  <span>Xem:</span>
-  <button data-nha="" aria-pressed="true">Không ?nha (cả hai nhà)</button>
-  <button data-nha="trai" aria-pressed="false">?nha=trai</button>
-  <button data-nha="gai" aria-pressed="false">?nha=gai</button>
-  <button data-guest="1" aria-pressed="false">?khach=Anh Minh</button>
-  <button data-sheet="1" aria-pressed="false">Mở sheet lời chúc</button>
-</div>
+  <div class="toolbar" role="group" aria-label="Chế độ xem mockup">
+    <span>Xem:</span>
+    <button data-nha="" aria-pressed="true">Không ?nha (cả hai nhà)</button>
+    <button data-nha="trai" aria-pressed="false">?nha=trai</button>
+    <button data-nha="gai" aria-pressed="false">?nha=gai</button>
+    <button data-guest="1" aria-pressed="false">?khach=Anh Minh</button>
+    <button data-sheet="1" aria-pressed="false">Mở sheet lời chúc</button>
+  </div>
 
-<div class="phone" id="phone">
-  <!-- HERO -->
-  <section class="hero" id="hero">
-    <div class="photo-label">[ ẢNH CẶP ĐÔI: assets/hero/couple.webp, ≤150KB, LCP ]</div>
-    <div class="dots" aria-hidden="true">
-      <span style="width:10px;height:10px;top:90px;left:40px"></span><span style="width:7px;height:7px;top:160px;left:290px"></span>
-      <span style="width:12px;height:12px;top:260px;left:80px"></span><span style="width:8px;height:8px;top:340px;left:310px"></span>
-    </div>
-    <span class="note" style="top:60px">Lớp hạt 3D (canvas aria-hidden) phủ lên ảnh</span>
-    <div class="inner">
-      <p class="invite" id="invite">Trân trọng kính mời <b id="guest">quý khách</b></p>
-      <h1>Minh Anh <i>&amp;</i> Hoàng Nam</h1>
-      <p class="date">Thứ Bảy, 20 tháng 12, 2026</p>
-      <a class="btn" href="#events">Xem thời gian &amp; địa điểm</a>
-    </div>
-  </section>
+  <div class="phone" id="phone">
+    <!-- HERO -->
+    <section class="hero" id="hero">
+      <div class="photo-label">[ ẢNH CẶP ĐÔI: assets/hero/couple.webp, ≤150KB, LCP ]</div>
+      <div class="dots" aria-hidden="true">
+        <span style="width:10px;height:10px;top:90px;left:40px"></span><span
+          style="width:7px;height:7px;top:160px;left:290px"></span>
+        <span style="width:12px;height:12px;top:260px;left:80px"></span><span
+          style="width:8px;height:8px;top:340px;left:310px"></span>
+      </div>
+      <span class="note" style="top:60px">Lớp hạt 3D (canvas aria-hidden) phủ lên ảnh</span>
+      <div class="inner">
+        <p class="invite" id="invite">Trân trọng kính mời <b id="guest">quý khách</b></p>
+        <h1>Ngọc Khánh <i>&amp;</i> Quốc Tuân</h1>
+        <p class="date">Thứ Bảy, 20 tháng 12, 2026</p>
+        <a class="btn" href="#events">Xem thời gian &amp; địa điểm</a>
+      </div>
+    </section>
 
-  <!-- EVENTS -->
-  <section id="events">
-    <h2>Thời gian &amp; địa điểm</h2>
-    <p class="sub">Chạm “Chỉ đường” để mở Google Maps</p>
-    <div id="grp-trai">
-      <div class="group-title">Nhà trai</div>
-      <div class="card"><div class="t">Lễ thành hôn</div><div class="time">09:00 · 20/12/2026</div>
-        <div class="addr">Số 12, đường Hoa Sữa, Quận 1, TP. HCM</div>
-        <div class="row"><a class="btn" href="#">Chỉ đường</a><button class="btn ghost" data-map>Xem bản đồ</button></div>
-        <div class="map-ph">iframe chỉ tải khi chạm</div></div>
-      <div class="card"><div class="t">Tiệc mừng</div><div class="time">18:00 · 20/12/2026</div>
-        <div class="addr">Nhà hàng Hoa Hồng, Quận 3, TP. HCM</div>
-        <div class="row"><a class="btn" href="#">Chỉ đường</a><button class="btn ghost" data-map>Xem bản đồ</button></div>
-        <div class="map-ph">iframe chỉ tải khi chạm</div></div>
-    </div>
-    <div id="grp-gai">
-      <div class="group-title">Nhà gái</div>
-      <div class="card"><div class="t">Lễ vu quy</div><div class="time">08:00 · 19/12/2026</div>
-        <div class="addr">Số 34, đường Lê Lợi, TP. Đà Lạt</div>
-        <div class="row"><a class="btn" href="#">Chỉ đường</a><button class="btn ghost" data-map>Xem bản đồ</button></div>
-        <div class="map-ph">iframe chỉ tải khi chạm</div></div>
-    </div>
-  </section>
+    <!-- EVENTS -->
+    <section id="events">
+      <h2>Thời gian &amp; địa điểm</h2>
+      <p class="sub">Chạm “Chỉ đường” để mở Google Maps</p>
+      <div id="grp-trai">
+        <div class="group-title">Nhà trai</div>
+        <div class="card">
+          <div class="t">Lễ thành hôn</div>
+          <div class="time">09:00 · 20/12/2026</div>
+          <div class="addr">Số 12, đường Hoa Sữa, Quận 1, TP. HCM</div>
+          <div class="row"><a class="btn" href="#">Chỉ đường</a><button class="btn ghost" data-map>Xem bản đồ</button>
+          </div>
+          <div class="map-ph">iframe chỉ tải khi chạm</div>
+        </div>
+        <div class="card">
+          <div class="t">Tiệc mừng</div>
+          <div class="time">18:00 · 20/12/2026</div>
+          <div class="addr">Nhà hàng Hoa Hồng, Quận 3, TP. HCM</div>
+          <div class="row"><a class="btn" href="#">Chỉ đường</a><button class="btn ghost" data-map>Xem bản đồ</button>
+          </div>
+          <div class="map-ph">iframe chỉ tải khi chạm</div>
+        </div>
+      </div>
+      <div id="grp-gai">
+        <div class="group-title">Nhà gái</div>
+        <div class="card">
+          <div class="t">Lễ vu quy</div>
+          <div class="time">08:00 · 19/12/2026</div>
+          <div class="addr">Số 34, đường Lê Lợi, TP. Đà Lạt</div>
+          <div class="row"><a class="btn" href="#">Chỉ đường</a><button class="btn ghost" data-map>Xem bản đồ</button>
+          </div>
+          <div class="map-ph">iframe chỉ tải khi chạm</div>
+        </div>
+      </div>
+    </section>
 
-  <!-- GALLERY -->
-  <section class="gallery" id="photos">
-    <h2>Ảnh cưới</h2>
-    <p class="sub">Vuốt ngang để xem · chạm để phóng to</p>
-    <div class="arc" aria-hidden="true"><div>ảnh</div><div>ảnh</div><div>ảnh</div></div>
-    <p class="hint">Gợi ý “Vuốt để xem” chỉ hiện lần đầu. Fallback: carousel cuộn ngang (không 3D).</p>
-  </section>
+    <!-- GALLERY -->
+    <section class="gallery" id="photos">
+      <h2>Ảnh cưới</h2>
+      <p class="sub">Vuốt ngang để xem · chạm để phóng to</p>
+      <div class="arc" aria-hidden="true">
+        <div>ảnh</div>
+        <div>ảnh</div>
+        <div>ảnh</div>
+      </div>
+      <p class="hint">Gợi ý “Vuốt để xem” chỉ hiện lần đầu. Fallback: carousel cuộn ngang (không 3D).</p>
+    </section>
 
-  <!-- WISHES -->
-  <section class="sky" id="wishes" style="padding-top:0">
-    <h2>Lời chúc</h2>
-    <p class="sub">Mỗi lời chúc là một chiếc đèn lồng trên bầu trời</p>
-    <div class="lanterns" aria-hidden="true">
-      <span class="lan" style="top:20px;left:40px"></span><span class="lan" style="top:70px;left:240px"></span>
-      <span class="lan" style="top:130px;left:110px"></span><span class="lan" style="top:50px;left:170px;transform:scale(.7)"></span>
-      <span class="lan" style="top:180px;left:290px;transform:scale(.8)"></span>
-      <div class="card-pop"><b>Thu Hà</b>Chúc hai bạn trăm năm hạnh phúc! (thẻ tự hiện xoay vòng, aria-live)</div>
-    </div>
-    <button class="btn" id="open-sheet" style="width:100%;background:#fff;color:var(--accent-strong)">Gửi lời chúc</button>
-    <div class="sheet hidden" id="sheet" role="dialog" aria-label="Gửi lời chúc">
-      <div class="handle"></div>
-      <input placeholder="Tên của bạn" maxlength="40" aria-label="Tên">
-      <textarea rows="3" placeholder="Lời chúc của bạn…" maxlength="300" aria-label="Lời chúc"></textarea>
-      <div class="cnt">0/300</div>
-      <button class="btn" style="width:100%;background:var(--accent-strong);color:#fff;margin:0">Gửi lời chúc</button>
-    </div>
-    <div class="list"><div class="w"><b>Thu Hà</b>Chúc hai bạn trăm năm hạnh phúc!</div>
-      <div class="w"><b>Anh Tuấn</b>Hạnh phúc nhé hai em.</div>
-      <button class="btn ghost" style="width:100%;margin-top:8px">Xem thêm</button>
-      <p class="hint" style="margin-top:8px">Trạng thái rỗng: “Hãy là người đầu tiên gửi lời chúc”</p></div>
-  </section>
+    <!-- WISHES -->
+    <section class="sky" id="wishes" style="padding-top:0">
+      <h2>Lời chúc</h2>
+      <p class="sub">Mỗi lời chúc là một chiếc đèn lồng trên bầu trời</p>
+      <div class="lanterns" aria-hidden="true">
+        <span class="lan" style="top:20px;left:40px"></span><span class="lan" style="top:70px;left:240px"></span>
+        <span class="lan" style="top:130px;left:110px"></span><span class="lan"
+          style="top:50px;left:170px;transform:scale(.7)"></span>
+        <span class="lan" style="top:180px;left:290px;transform:scale(.8)"></span>
+        <div class="card-pop"><b>Thu Hà</b>Chúc hai bạn trăm năm hạnh phúc! (thẻ tự hiện xoay vòng, aria-live)</div>
+      </div>
+      <button class="btn" id="open-sheet" style="width:100%;background:#fff;color:var(--accent-strong)">Gửi lời
+        chúc</button>
+      <div class="sheet hidden" id="sheet" role="dialog" aria-label="Gửi lời chúc">
+        <div class="handle"></div>
+        <input placeholder="Tên của bạn" maxlength="40" aria-label="Tên">
+        <textarea rows="3" placeholder="Lời chúc của bạn…" maxlength="300" aria-label="Lời chúc"></textarea>
+        <div class="cnt">0/300</div>
+        <button class="btn" style="width:100%;background:var(--accent-strong);color:#fff;margin:0">Gửi lời chúc</button>
+      </div>
+      <div class="list">
+        <div class="w"><b>Thu Hà</b>Chúc hai bạn trăm năm hạnh phúc!</div>
+        <div class="w"><b>Anh Tuấn</b>Hạnh phúc nhé hai em.</div>
+        <button class="btn ghost" style="width:100%;margin-top:8px">Xem thêm</button>
+        <p class="hint" style="margin-top:8px">Trạng thái rỗng: “Hãy là người đầu tiên gửi lời chúc”</p>
+      </div>
+    </section>
 
-  <!-- GIFT -->
-  <section class="gift" id="gift">
-    <h2>Gửi yêu thương</h2>
-    <p class="sub">Sự hiện diện của bạn đã là món quà quý giá nhất với chúng mình.<br>Mọi lời chúc phúc và món quà gửi xa, chúng mình xin trân trọng đón nhận qua thông tin dưới đây.</p>
-    <div class="acc" style="margin-bottom:14px">
-      <div class="who">Cô dâu · Minh Anh</div>
-      <div class="qr" role="img" aria-label="Hộp quà yêu thương của cô dâu (QR mẫu)"></div>
-      <div class="bank">Vietcombank · NGUYEN MINH ANH</div>
-      <div class="num">0123 456 789</div>
-      <button class="btn ghost" style="width:100%">Chép số tài khoản</button>
-    </div>
-    <div class="acc">
-      <div class="who">Chú rể · Hoàng Nam</div>
-      <div class="qr" role="img" aria-label="Hộp quà yêu thương của chú rể (QR mẫu)"></div>
-      <div class="bank">Techcombank · NGUYEN HOANG NAM</div>
-      <div class="num">9876 543 210</div>
-      <button class="btn ghost" style="width:100%">Chép số tài khoản</button>
-    </div>
-    <p class="qr-cap" style="text-align:center;margin-top:14px">Bạn có thể nhấn giữ hình để lưu, rồi mở trong ứng dụng ngân hàng của mình. (QR mẫu)</p>
-    <p class="hint" style="margin-top:14px;padding-bottom:60px">Cảm ơn bạn đã yêu thương và đồng hành cùng chúng mình ♡</p>
-  </section>
+    <!-- GIFT -->
+    <section class="gift" id="gift">
+      <h2>Gửi yêu thương</h2>
+      <p class="sub">Sự hiện diện của bạn đã là món quà quý giá nhất với chúng mình.<br>Mọi lời chúc phúc và món quà gửi
+        xa, chúng mình xin trân trọng đón nhận qua thông tin dưới đây.</p>
+      <div class="acc" style="margin-bottom:14px">
+        <div class="who">Cô dâu · Ngọc Khánh</div>
+        <div class="qr" role="img" aria-label="Hộp quà yêu thương của cô dâu (QR mẫu)"></div>
+        <div class="bank">Vietcombank · NGUYEN Ngọc Khánh</div>
+        <div class="num">0123 456 789</div>
+        <button class="btn ghost" style="width:100%">Chép số tài khoản</button>
+      </div>
+      <div class="acc">
+        <div class="who">Chú rể · Quốc Tuân</div>
+        <div class="qr" role="img" aria-label="Hộp quà yêu thương của chú rể (QR mẫu)"></div>
+        <div class="bank">Techcombank · NGUYEN HOANG NAM</div>
+        <div class="num">9876 543 210</div>
+        <button class="btn ghost" style="width:100%">Chép số tài khoản</button>
+      </div>
+      <p class="qr-cap" style="text-align:center;margin-top:14px">Bạn có thể nhấn giữ hình để lưu, rồi mở trong ứng dụng
+        ngân hàng của mình. (QR mẫu)</p>
+      <p class="hint" style="margin-top:14px;padding-bottom:60px">Cảm ơn bạn đã yêu thương và đồng hành cùng chúng mình
+        ♡</p>
+    </section>
 
-  <nav class="actionbar" aria-label="Lối tắt">
-    <a href="#events" class="active">📍<span>Chỉ đường</span></a>
-    <a href="#wishes">💌<span>Lời chúc</span></a>
-    <a href="#gift">🎁<span>Yêu thương</span></a>
-  </nav>
-</div>
+    <nav class="actionbar" aria-label="Lối tắt">
+      <a href="#events" class="active">📍<span>Chỉ đường</span></a>
+      <a href="#wishes">💌<span>Lời chúc</span></a>
+      <a href="#gift">🎁<span>Yêu thương</span></a>
+    </nav>
+  </div>
 
-<div class="spec">
-  <h3>Ghi chú thiết kế (kiểm tra khi duyệt)</h3>
-  <ul>
-    <li>60% nền kem #FBF6F0 · 30% hồng #EBCFCB/#C98B8B (tiêu đề, viền, bầu trời lời chúc) · 10% nhấn: nút dùng #9E5560 (chữ trắng đạt AA), #B76E79 cho trang trí.</li>
-    <li>Cỡ chữ: thân bài 16px, giờ/địa chỉ 18–20px, nút cao ≥48px. Tiêu đề dùng Playfair Display (có subset tiếng Việt), thân bài Be Vietnam Pro.</li>
-    <li>Thanh hành động cố định ở đáy có safe-area; trang có đệm dưới để không che nội dung cuối.</li>
-    <li>Bầu trời lời chúc là vùng tối hơn, chuyển mềm từ nền kem; chỉ ở đây mới có hiệu ứng phát sáng.</li>
-    <li>Nút “Xem bản đồ” chỉ tải iframe khi chạm; “Chỉ đường” mở thẳng Google Maps.</li>
-    <li>“Gửi yêu thương”: 2 thẻ, mỗi thẻ một QR và một tài khoản (cô dâu, chú rể); hiện giống nhau với mọi ?nha. Lời dẫn nhẹ nhàng, không dùng chữ “quét mã/chuyển khoản” làm tiêu đề; nút phụ (ghost) để phần này không lấn át.</li>
-  </ul>
-</div>
+  <div class="spec">
+    <h3>Ghi chú thiết kế (kiểm tra khi duyệt)</h3>
+    <ul>
+      <li>60% nền kem #FBF6F0 · 30% hồng #EBCFCB/#C98B8B (tiêu đề, viền, bầu trời lời chúc) · 10% nhấn: nút dùng #9E5560
+        (chữ trắng đạt AA), #B76E79 cho trang trí.</li>
+      <li>Cỡ chữ: thân bài 16px, giờ/địa chỉ 18–20px, nút cao ≥48px. Tiêu đề dùng Playfair Display (có subset tiếng
+        Việt), thân bài Be Vietnam Pro.</li>
+      <li>Thanh hành động cố định ở đáy có safe-area; trang có đệm dưới để không che nội dung cuối.</li>
+      <li>Bầu trời lời chúc là vùng tối hơn, chuyển mềm từ nền kem; chỉ ở đây mới có hiệu ứng phát sáng.</li>
+      <li>Nút “Xem bản đồ” chỉ tải iframe khi chạm; “Chỉ đường” mở thẳng Google Maps.</li>
+      <li>“Gửi yêu thương”: 2 thẻ, mỗi thẻ một QR và một tài khoản (cô dâu, chú rể); hiện giống nhau với mọi ?nha. Lời
+        dẫn nhẹ nhàng, không dùng chữ “quét mã/chuyển khoản” làm tiêu đề; nút phụ (ghost) để phần này không lấn át.</li>
+    </ul>
+  </div>
 
-<script>
-const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
-function setNha(v){
-  $('#grp-trai').classList.toggle('hidden', v==='gai');
-  $('#grp-gai').classList.toggle('hidden', v==='trai');
-  $$('[data-nha]').forEach(b=>b.setAttribute('aria-pressed', b.dataset.nha===v));
-}
-$$('[data-nha]').forEach(b=>b.onclick=()=>setNha(b.dataset.nha));
-const g=$('[data-guest]'); g.onclick=()=>{const on=g.getAttribute('aria-pressed')!=='true';g.setAttribute('aria-pressed',on);$('#guest').textContent=on?'Anh Minh':'quý khách'};
-const sh=$('[data-sheet]'), toggleSheet=()=>{const on=$('#sheet').classList.toggle('hidden')===false;sh.setAttribute('aria-pressed',on)};
-sh.onclick=toggleSheet; $('#open-sheet').onclick=toggleSheet;
-$$('[data-map]').forEach(b=>b.onclick=()=>b.closest('.card').classList.toggle('open'));
-</script>
+  <script>
+    const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
+    function setNha(v) {
+      $('#grp-trai').classList.toggle('hidden', v === 'gai');
+      $('#grp-gai').classList.toggle('hidden', v === 'trai');
+      $$('[data-nha]').forEach(b => b.setAttribute('aria-pressed', b.dataset.nha === v));
+    }
+    $$('[data-nha]').forEach(b => b.onclick = () => setNha(b.dataset.nha));
+    const g = $('[data-guest]'); g.onclick = () => { const on = g.getAttribute('aria-pressed') !== 'true'; g.setAttribute('aria-pressed', on); $('#guest').textContent = on ? 'Anh Minh' : 'quý khách' };
+    const sh = $('[data-sheet]'), toggleSheet = () => { const on = $('#sheet').classList.toggle('hidden') === false; sh.setAttribute('aria-pressed', on) };
+    sh.onclick = toggleSheet; $('#open-sheet').onclick = toggleSheet;
+    $$('[data-map]').forEach(b => b.onclick = () => b.closest('.card').classList.toggle('open'));
+  </script>
 </body>
+
 </html>

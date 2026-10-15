@@ -61,4 +61,5 @@ Dựng bộ khung chung để các cảnh 2-5 cắm vào: ảnh nén đúng cỡ
 - Đã làm: ảnh nén (hero 1600x2400, gallery cạnh dài 1600px; bản 683x1024 đầu tiên bị mờ nên đã nâng), engine một canvas + camera theo cuộn + bậc chất lượng + xử lý lỗi/mất context + `--tod`, cảnh thử `probe-scene`.
 - Quyết định K6 (hậu kỳ): dùng `EffectComposer` + `UnrealBloomPass` có sẵn trong Three.js, không thêm phụ thuộc; chốt lại ở phase 5 nếu gặp lỗi thứ tự pass.
 - Việc còn lại của phase: đo FPS (phase 7). `probe-scene` bị thay ở phase 2.
+- Ghi chú: các test đã viết ở phase này (và toàn bộ test của repo) đã bị xóa theo quyết định của người dùng; từ phase 2 không còn viết/chạy test.
 - Ghi chú git: ảnh gốc 50MB đang nằm trong index git (trạng thái "thêm") và ảnh placeholder cũ ở trạng thái "xóa" — chưa commit; bỏ ảnh gốc khỏi index trước khi commit.

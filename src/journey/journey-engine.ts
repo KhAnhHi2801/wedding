@@ -14,6 +14,8 @@ export interface JourneyEngineOptions {
   onContextLost: () => void
   /** Một cảnh hoặc lần vẽ ném lỗi: engine đã dừng vòng lặp, bên ngoài nên chuyển sang bản HTML. */
   onError?: (error: unknown) => void
+  /** Khung hình đầu tiên đã được vẽ lên canvas: từ đây mới nên ẩn bản HTML thay bằng 3D. */
+  onReady?: () => void
 }
 
 export interface JourneyEngine {
@@ -32,7 +34,7 @@ const IDLE_GAP_MS = 250
 const CONTEXT_RESTORE_TIMEOUT_MS = 3000
 
 export function createJourneyEngine(options: JourneyEngineOptions): JourneyEngine {
-  const { canvas, modules, onTierChange, onContextLost, onError } = options
+  const { canvas, modules, onTierChange, onContextLost, onError, onReady } = options
   let tier = options.tier
   let settings = tierSettings(tier)
 
@@ -59,6 +61,7 @@ export function createJourneyEngine(options: JourneyEngineOptions): JourneyEngin
   let running = false
   let disposed = false
   let contextLost = false
+  let readyFired = false
   let lastFrame: number | null = null
   let startedAt: number | null = null
   let restoreTimer: ReturnType<typeof setTimeout> | undefined
@@ -122,6 +125,10 @@ export function createJourneyEngine(options: JourneyEngineOptions): JourneyEngin
       const state = { progress, tod: journeyProgress.tod, time: (now - startedAt) / 1000, delta }
       modules.forEach((module) => module.update(state))
       renderer.render(scene, camera)
+      if (!readyFired) {
+        readyFired = true
+        onReady?.()
+      }
 
       if (!dirty && !anyContinuous()) stop()
     } catch (error) {

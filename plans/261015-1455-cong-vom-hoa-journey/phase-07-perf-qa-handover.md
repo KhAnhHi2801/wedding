@@ -34,7 +34,7 @@ dependencies: [1, 2, 3, 4, 5, 6]
 ## Success Criteria
 
 - [ ] Mọi tiêu chí ở `plan.md` đạt hoặc ghi rõ lý do hoãn
-- [ ] `npm test`, `npm run lint`, `npm run build` xanh
+- [ ] `npm run lint`, `npm run build` xanh (không chạy test: người dùng đã quyết định bỏ test)
 - [ ] Plan cũ cập nhật; không còn mâu thuẫn giữa hai plan
 
 ## Risk Assessment

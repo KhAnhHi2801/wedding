@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { ActionBar } from './components/action-bar'
 import { MusicToggle } from './components/music-toggle'
+import { heroPhoto } from './config/assets'
 import { weddingConfig } from './config/wedding-config'
 import { useTimeOfDay } from './hooks/use-time-of-day'
 import { JourneyCanvas } from './journey/journey-canvas'
@@ -26,7 +27,7 @@ export default function App({ search }: AppProps) {
 
   return (
     <>
-      <JourneyCanvas calm={calm} />
+      <JourneyCanvas calm={calm} heroSrc={heroPhoto?.src ?? null} />
       <HeroSection guestName={invite.guestName} />
       <main>
         <EventsSection side={invite.side} />
