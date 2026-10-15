@@ -417,10 +417,6 @@ export function createGateScene({ heroSrc }: GateSceneOptions): SceneModule {
       }
 
       if (!gateGone) {
-        // Cổng lắc nhẹ quanh trục đứng lúc chờ để các lớp khung, cánh, trụ lệch nhau và hiện chiều sâu; tắt dần khi mở.
-        const calm = 1 - Math.min(1, openElapsed / 0.5)
-        root.rotation.y = Math.sin(elapsed * 0.7) * 0.16 * calm
-        root.rotation.x = Math.sin(elapsed * 0.5 + 1) * 0.03 * calm
         if (gate.getState() === 'closed' && (elapsed >= AUTO_OPEN_SECONDS || progress > SCROLL_OPENS_AT)) gate.requestOpen()
 
         const state = gate.getState()
