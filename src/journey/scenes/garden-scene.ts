@@ -27,6 +27,7 @@ import type { QualityTier, TierSettings } from '../quality-tier'
 import type { JourneyFrame, SceneContext, SceneModule } from '../scene-module'
 import { todRgb } from '../time-of-day'
 import {
+  BEE_HINGE,
   createBeeGeometry,
   createButterflyGeometry,
   createDaisyGeometry,
@@ -159,8 +160,10 @@ function withSway(
 }
 
 /**
- * Làm vật liệu cho các con vật bay (bướm, ong) chạy hoàn toàn trong vertex shader: mỗi con bay lượn theo một quỹ đạo
- * riêng quanh vị trí gốc của nó (lệch pha theo vị trí), vỗ cánh bằng cách co bề ngang, co nhỏ dần khi ra xa như cỏ và hoa.
+ * Làm vật liệu cho các con vật bay (bướm, ong) chạy hoàn toàn trong vertex shader. Mỗi con bay THEO MỘT CHIỀU nhất định
+ * (trái hoặc phải, tuỳ con) ngang qua lối đi, thân quay đúng chiều bay, nhấp nhô nhẹ; hết đoạn đường thì mờ dần (co nhỏ)
+ * rồi xuất hiện lại từ đầu bên kia (không bao giờ bay lùi hay đảo chiều). Cánh (đỉnh có thuộc tính `wing`) xoay quanh khớp
+ * ở thân để vỗ; cả con co nhỏ dần khi ra xa như cỏ và hoa.
  */
 function withFlight(
   material: MeshBasicMaterial,
@@ -168,32 +171,56 @@ function withFlight(
   kind: 'butterfly' | 'bee',
 ): MeshBasicMaterial {
   const butterfly = kind === 'butterfly'
-  // Bướm: lượn rộng và chậm, vỗ cánh chậm biên độ lớn. Ong: lượn hẹp nhanh, cánh rung rất nhanh.
-  const wander = butterfly ? 'vec3(1.8, 0.4, 2.4)' : 'vec3(0.9, 0.25, 1.1)'
-  const speed = butterfly ? '0.5' : '1.3'
-  const flapRate = butterfly ? '9.0' : '38.0'
-  // Bướm: cả hai cánh co lại; ong: chỉ phần cánh (nằm phía trên thân, y > 0.08).
-  const flapTarget = butterfly ? 'true' : 'position.y > 0.08'
+  const [hingeX, hingeY] = BEE_HINGE
+  // Bướm: lượn chậm, nhấp nhô rộng, khép mở cánh. Ong: bay nhanh, nhấp nhô ngắn, cánh rung rất nhanh quanh khớp.
+  const travel = butterfly ? '12.0' : '14.0'
+  const speed = butterfly ? '0.55' : '1.3'
+  const flapRate = butterfly ? '10.0' : '55.0'
+  const bobRate = butterfly ? '1.7' : '6.0'
+  const bobAmp = butterfly ? '0.3' : '0.1'
+  // Phần riêng của từng loài: bướm nhìn từ trên xuống nên xoay thân về hướng bay rồi khép/mở cánh; ong nhìn nghiêng nên
+  // chỉ lật theo hướng bay và xoay các đỉnh cánh quanh khớp.
+  const body = butterfly
+    ? `transformed.x *= mix(0.4, 1.0, abs(cos(uTime * ${flapRate} + flyPhase)));
+      // Thân (trục y) quay về hướng bay, nghiêng lên xuống theo nhịp nhấp nhô.
+      float heading = -1.5708 * flyDir + cos(uTime * ${bobRate} + flyPhase) * 0.35 * flyDir;
+      float hc = cos(heading);
+      float hs = sin(heading);
+      transformed.xy = vec2(hc * transformed.x - hs * transformed.y, hs * transformed.x + hc * transformed.y);`
+    : `transformed.x *= flyDir;
+      if (wing > 0.5) {
+        float flapAngle = 0.6 * sin(uTime * ${flapRate} + flyPhase) * flyDir;
+        vec2 hinge = vec2(${hingeX.toFixed(3)} * flyDir, ${hingeY.toFixed(3)});
+        vec2 rel = transformed.xy - hinge;
+        float fc = cos(flapAngle);
+        float fs = sin(flapAngle);
+        transformed.xy = hinge + vec2(fc * rel.x - fs * rel.y, fs * rel.x + fc * rel.y);
+      }`
   material.customProgramCacheKey = () => `flight-${kind}`
   material.onBeforeCompile = (shader) => {
     shader.uniforms.uTime = uniform
-    shader.vertexShader = `uniform float uTime;\n${shader.vertexShader}`
+    shader.vertexShader = `uniform float uTime;\n${butterfly ? '' : 'attribute float wing;\n'}${shader.vertexShader}`
       .replace(
         '#include <begin_vertex>',
         `#include <begin_vertex>
       float flyPhase = instanceMatrix[3].x * 3.1 + instanceMatrix[3].z * 1.7;
-      if (${flapTarget}) transformed.x *= mix(0.25, 1.0, abs(cos(uTime * ${flapRate} + flyPhase)));
-      vec4 flyCenter = modelViewMatrix * instanceMatrix * vec4(0.0, 0.0, 0.0, 1.0);
-      transformed *= 1.0 - smoothstep(${FADE_START}.0, ${FADE_END}.0, -flyCenter.z);`,
+      // Mỗi con có một hướng bay cố định: +1 sang phải, -1 sang trái. Không bao giờ đảo chiều hay bay lùi.
+      float flyDir = step(0.5, fract(flyPhase * 0.37)) * 2.0 - 1.0;
+      float flyU = mod(uTime * ${speed} + flyPhase * 2.3, ${travel});
+      float flyEnds = smoothstep(0.0, 1.5, flyU) * (1.0 - smoothstep(${travel} - 1.5, ${travel}, flyU));
+      vec3 flyOffset = vec3(
+        flyDir * (flyU - ${travel} * 0.5),
+        sin(uTime * ${bobRate} + flyPhase) * ${bobAmp} + sin(uTime * ${flapRate} + flyPhase) * 0.02,
+        sin(uTime * 0.6 + flyPhase) * 0.4
+      );
+      ${body}
+      vec4 flyCenter = modelViewMatrix * (instanceMatrix * vec4(0.0, 0.0, 0.0, 1.0) + vec4(flyOffset, 0.0));
+      transformed *= flyEnds * (1.0 - smoothstep(${FADE_START}.0, ${FADE_END}.0, -flyCenter.z));`,
       )
       .replace(
         '#include <project_vertex>',
         `vec4 mvPosition = instanceMatrix * vec4( transformed, 1.0 );
-      mvPosition.xyz += ${wander} * vec3(
-        sin(uTime * ${speed} + flyPhase),
-        sin(uTime * ${speed} * 2.1 + flyPhase * 1.3),
-        cos(uTime * ${speed} * 0.9 + flyPhase * 0.7)
-      );
+      mvPosition.xyz += flyOffset;
       mvPosition = modelViewMatrix * mvPosition;
       gl_Position = projectionMatrix * mvPosition;`,
       )
@@ -319,7 +346,7 @@ export function createGardenScene(): SceneModule {
         material: materials.butterfly,
         count: BASE_COUNTS.butterflies,
         tints: BUTTERFLY_TINTS,
-        size: 0.5,
+        size: 0.4,
         low: 0.9,
       },
       { geometry: geometry.bee, material: materials.bee, count: BASE_COUNTS.bees, tints: [new Color('#ffffff')], size: 0.3, low: 0.6 },

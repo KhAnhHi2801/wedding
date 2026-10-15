@@ -11,18 +11,22 @@ interface MeshData {
   positions: number[]
   colors: number[]
   indices: number[]
+  /** 1 cho đỉnh thuộc cánh (shader xoay quanh khớp để vỗ cánh), 0 cho phần còn lại. Chỉ bướm và ong dùng. */
+  wings?: number[]
 }
 
-const addVertex = (data: MeshData, x: number, y: number, z: number, color: Color): number => {
+const addVertex = (data: MeshData, x: number, y: number, z: number, color: Color, wing = 0): number => {
   data.positions.push(x, y, z)
   data.colors.push(color.r, color.g, color.b)
+  data.wings?.push(wing)
   return data.positions.length / 3 - 1
 }
 
-const toGeometry = ({ positions, colors, indices }: MeshData): BufferGeometry => {
+const toGeometry = ({ positions, colors, indices, wings }: MeshData): BufferGeometry => {
   const geometry = new BufferGeometry()
   geometry.setAttribute('position', new Float32BufferAttribute(positions, 3))
   geometry.setAttribute('color', new Float32BufferAttribute(colors, 3))
+  if (wings) geometry.setAttribute('wing', new Float32BufferAttribute(wings, 1))
   geometry.setIndex(indices)
   return geometry
 }
@@ -179,7 +183,7 @@ export function createLeafGeometry(): BufferGeometry {
 }
 
 
-/** Một mảng elip (đa giác quạt) tô gradient từ tâm ra mép, thêm vào dữ liệu hình. */
+/** Một mảng elip (đa giác quạt) tô gradient từ tâm ra mép, thêm vào dữ liệu hình. `wing`: đỉnh thuộc cánh. */
 function addEllipse(
   data: MeshData,
   cx: number,
@@ -190,44 +194,49 @@ function addEllipse(
   inner: Color,
   outer: Color,
   segments = 12,
+  wing = 0,
 ) {
-  const centre = addVertex(data, cx, cy, z, inner)
+  const centre = addVertex(data, cx, cy, z, inner, wing)
   const ring: number[] = []
   for (let i = 0; i < segments; i += 1) {
     const t = (i / segments) * Math.PI * 2
-    ring.push(addVertex(data, cx + Math.cos(t) * rx, cy + Math.sin(t) * ry, z, outer))
+    ring.push(addVertex(data, cx + Math.cos(t) * rx, cy + Math.sin(t) * ry, z, outer, wing))
   }
   for (let i = 0; i < segments; i += 1) data.indices.push(centre, ring[i], ring[(i + 1) % segments])
 }
 
+/** Khớp cánh của ong (toạ độ mô hình): shader xoay các đỉnh cánh quanh điểm này để rung cánh. */
+export const BEE_HINGE = [0, 0.1] as const
+
 /**
- * Con bướm nhìn thẳng từ phía trước: hai cánh trên to, hai cánh dưới nhỏ, thân nhỏ sẫm ở giữa, đối xứng qua trục y.
- * Cánh tô sáng ở gốc, nhạt dần ra mép; màu thật do màu theo instance nhân vào. Vỗ cánh = co bề ngang trong shader.
+ * Con bướm nhìn từ trên xuống: thân nhỏ ở giữa theo trục y (đầu ở phía +y), hai cánh trên to và hai cánh dưới nhỏ dang
+ * hai bên. Cánh tô sáng ở gốc, nhạt dần ra mép; màu thật do màu theo instance nhân vào. Shader xoay cả con cho thân hướng
+ * về phía bay và vỗ cánh bằng cách khép/mở bề ngang.
  */
 export function createButterflyGeometry(): BufferGeometry {
   const data: MeshData = { positions: [], colors: [], indices: [] }
   const inner = new Color('#ffffff')
   const outer = new Color('#f1dce6')
   for (const side of [-1, 1]) {
-    addEllipse(data, side * 0.24, 0.17, 0.25, 0.2, 0, inner, outer)
-    addEllipse(data, side * 0.18, -0.14, 0.17, 0.15, 0.001, inner, outer)
+    addEllipse(data, side * 0.22, 0.16, 0.22, 0.2, 0, inner, outer, 14)
+    addEllipse(data, side * 0.17, -0.14, 0.15, 0.14, 0.001, inner, outer, 12)
   }
-  // Thân: dải đứng mảnh, đặt trước cánh.
   const body = new Color('#3b2a2d')
-  const a = addVertex(data, -0.022, -0.22, 0.01, body)
-  const b = addVertex(data, 0.022, -0.22, 0.01, body)
-  const c = addVertex(data, -0.022, 0.22, 0.01, body)
-  const d = addVertex(data, 0.022, 0.22, 0.01, body)
+  const a = addVertex(data, -0.025, -0.2, 0.01, body)
+  const b = addVertex(data, 0.025, -0.2, 0.01, body)
+  const c = addVertex(data, -0.025, 0.2, 0.01, body)
+  const d = addVertex(data, 0.025, 0.2, 0.01, body)
   data.indices.push(a, b, c, b, d, c)
+  addEllipse(data, 0, 0.22, 0.04, 0.04, 0.011, body, body, 8)
   return toGeometry(data)
 }
 
 /**
- * Chú ong nhìn nghiêng: thân bầu dục sọc vàng đen và hai cánh nhỏ nhạt phía trên. Cánh nằm ở y > 0.08 để shader nhận ra
- * và làm chúng rung nhanh.
+ * Chú ong nhìn nghiêng (hướng +x): thân bầu dục sọc vàng đen, mắt nhỏ ở phía trước, hai cánh nhạt dựng phía trên thân.
+ * Cánh có thuộc tính `wing` để shader rung nhanh quanh khớp.
  */
 export function createBeeGeometry(): BufferGeometry {
-  const data: MeshData = { positions: [], colors: [], indices: [] }
+  const data: MeshData = { positions: [], colors: [], indices: [], wings: [] }
   const yellow = new Color('#f6c445')
   const black = new Color('#3b2a2d')
   const bands = [yellow, yellow, black, black, yellow, yellow, black, black, yellow, yellow, yellow, yellow]
@@ -247,9 +256,9 @@ export function createBeeGeometry(): BufferGeometry {
   }
   const wingInner = new Color('#ffffff')
   const wingOuter = new Color('#d7e9fb')
-  addEllipse(data, -0.04, 0.2, 0.07, 0.11, 0.01, wingInner, wingOuter, 8)
-  addEllipse(data, 0.05, 0.19, 0.06, 0.1, 0.011, wingInner, wingOuter, 8)
-  // Mắt nhỏ.
+  // Cánh nằm sau thân; khớp ở trên lưng ong.
+  addEllipse(data, -0.05, 0.22, 0.07, 0.12, -0.002, wingInner, wingOuter, 8, 1)
+  addEllipse(data, 0.04, 0.21, 0.06, 0.11, -0.001, wingInner, wingOuter, 8, 1)
   addEllipse(data, halfLength - 0.03, 0.03, 0.02, 0.02, 0.012, black, black, 6)
   return toGeometry(data)
 }
