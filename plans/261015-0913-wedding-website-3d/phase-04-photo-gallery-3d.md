@@ -20,6 +20,7 @@ Gallery ảnh cưới xếp cong trong không gian 3D, vuốt ngang để xoay, 
 ## Architecture
 
 - Dùng lại `scripts/optimize-images.mjs` từ phase 1 cho ảnh gallery (không viết script mới); ảnh đọc từ `public/assets/photos/` theo danh sách trong config.
+- Mở rộng `scripts/optimize-images.mjs` cho gallery: xuất thêm bản 768px (tier thấp) và blur placeholder nhỏ cho fallback/lúc chờ tải (hai phần này được chuyển từ phase 1 vì chỉ gallery dùng).
 - `photo-viewer.tsx`: trình xem toàn màn hình bằng HTML (`dialog`, `object-fit: contain`, vuốt trái/phải, nút đóng ≥44px, Esc, trả focus về ảnh đã chạm, khóa cuộn nền). Dùng chung cho cả gallery 3D và fallback. Phân biệt chạm với kéo xoay bằng ngưỡng di chuyển (chạm = di chuyển < ~8px).
 - `src/3d/gallery-scene.tsx`: mặt phẳng ảnh đặt theo cung; `useTexture` chỉ khi section gần viewport; `anisotropy` thấp, bật mipmap; xoay bằng pointer events + damping (không dùng OrbitControls để tránh chiếm cuộn dọc).
 - Danh sách ảnh và alt text trong `wedding-config.ts` (một nguồn dữ liệu cho cả 3D và fallback).

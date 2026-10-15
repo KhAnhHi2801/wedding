@@ -1,0 +1,43 @@
+/*
+ * Design tokens - palette Romantic & Soft theo quy tắc 60-30-10.
+ *
+ * 60% --bg                    nền trang, nền thẻ sự kiện.
+ * 30% --surface/--surface-deep tiêu đề section, viền thẻ, nền vùng ảnh, bầu trời lời chúc.
+ * 10% --accent/--accent-strong chỉ cho Chỉ đường, Gửi lời chúc và trạng thái active
+ *                              của thanh hành động. "Gửi yêu thương" dùng nút phụ (ghost).
+ *
+ * --accent (#B76E79) chỉ ~3.8:1 với chữ trắng (< AA 4.5:1): dùng cho trang trí, viền,
+ * chữ lớn. Nút có chữ trắng dùng --accent-strong.
+ */
+:root {
+  --bg: #fbf6f0;
+  --surface: #ebcfcb;
+  --surface-deep: #c98b8b;
+  --accent: #b76e79;
+  --accent-strong: #9e5560;
+
+  --ink: #3b2a2d;
+  --ink-soft: #6b5458;
+  --card: #ffffff;
+
+  --sky-top: #7a4a63;
+  --sky-bottom: #c98b8b;
+
+  --font-serif: 'Playfair Display', Georgia, 'Noto Serif', serif;
+  --font-sans: 'Be Vietnam Pro', system-ui, -apple-system, 'Segoe UI', sans-serif;
+
+  --text-body: 1rem; /* 16px */
+  --text-lead: 1.125rem; /* 18px: giờ, địa chỉ */
+  --text-time: 1.25rem; /* 20px */
+
+  --space-1: 0.5rem;
+  --space-2: 0.75rem;
+  --space-3: 1rem;
+  --space-4: 1.5rem;
+  --space-5: 2.5rem;
+
+  --radius-card: 14px;
+  --radius-pill: 999px;
+  --tap-min: 48px;
+  --action-bar-h: 64px;
+}

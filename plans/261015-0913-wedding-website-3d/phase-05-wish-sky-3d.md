@@ -60,5 +60,6 @@ Bầu trời hoàng hôn pastel với cánh hoa/đèn lồng phát sáng bay lơ
 
 - Chồng chéo/khó chạm trên màn hình nhỏ → vùng chạm tối thiểu ~44px, tăng bán kính raycast ở tier low; tín hiệu: người test không chọn được đối tượng → giảm mật độ hoặc thêm bước phóng to khi chạm vùng gần.
 - Hiệu năng xuống dưới ngưỡng khi có blending → giảm trần (vd. 60), tắt additive blending ở tier low.
+- Chữ trắng trên nền sky: vùng dưới gradient (`--sky-bottom #C98B8B`) chỉ ~2.8:1 với chữ trắng (không đạt AA). Khi đặt chữ thật (tiêu đề, thẻ lời chúc), làm tối vùng nền sau chữ hoặc đặt chữ trên thẻ nền đặc.
 - Thẻ tự hiện gây phiền hoặc che nội dung → nhỏ, ở vị trí cố định, dừng ngay khi khách chạm/cuộn; tín hiệu: người test phàn nàn → tăng chu kỳ hoặc tắt mặc định.
 - Dữ liệu từ Sheet không đáng tin → chỉ hiển thị dưới dạng text; cắt độ dài khi vẽ thẻ.
