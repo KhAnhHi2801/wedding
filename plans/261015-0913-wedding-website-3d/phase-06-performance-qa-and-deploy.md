@@ -34,7 +34,7 @@ dependencies: [1, 2, 3, 4, 5]
 
 ## Implementation Steps
 
-1. Chạy build, phân tích chunk, xác nhận three/R3F nằm ngoài bundle ban đầu.
+1. Chạy build, phân tích chunk, xác nhận không có three/R3F trong bundle (đã gỡ khỏi dự án).
 2. Lighthouse mobile trước/sau; xử lý LCP (preload font/ảnh hero, kích thước ảnh, hoãn script 3D).
 3. Viết và chạy test đơn vị + smoke Playwright (kể cả kịch bản không WebGL, reduced-motion).
 4. Thử trên điện thoại thật qua LAN; ghi fps, lỗi, hành vi cuộn/vuốt; sửa tier/DPR theo số đo.

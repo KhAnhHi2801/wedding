@@ -1,10 +1,13 @@
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
 import App from '../app'
+import { photos } from '../config/assets'
 import { weddingConfig } from '../config/wedding-config'
 import { EventsSection } from './events-section'
 import { GiftSection } from './gift-section'
 import { HeroSection } from './hero-section'
+import { PhotosSection } from './photos-section'
+import { ThreadGallery } from './thread-gallery'
 import { WishesSection } from './wishes-section'
 
 describe('EventsSection', () => {
@@ -49,6 +52,54 @@ describe('GiftSection', () => {
   it('does not use "quét mã" or "chuyển khoản" wording', () => {
     const html = renderToStaticMarkup(<GiftSection />)
     expect(html).not.toMatch(/quét mã|chuyển khoản/i)
+  })
+})
+
+describe('ThreadGallery (red thread gallery)', () => {
+  it('shows every configured photo as a button that opens the viewer, with size to avoid layout shift', () => {
+    const html = renderToStaticMarkup(<ThreadGallery />)
+    expect(html.match(/<figure/g)).toHaveLength(photos.length)
+    expect(html.match(/aria-label="Xem ảnh \d+:/g)).toHaveLength(photos.length)
+    // mỗi ảnh mang kích thước thật của nó (đọc từ file) để trình duyệt giữ chỗ đúng tỉ lệ
+    for (const photo of photos) {
+      expect(html).toContain(`width="${photo.width}"`)
+      expect(html).toContain(`height="${photo.height}"`)
+      expect(html).toContain(`src="${photo.src}"`)
+    }
+    expect(photos.length).toBeGreaterThan(0)
+    expect(html).toContain('loading="lazy"')
+  })
+
+  it('shows all photos and the ending before any scroll logic runs (no hidden state without JS)', () => {
+    const html = renderToStaticMarkup(<ThreadGallery />)
+    expect(html).not.toContain('is-hidden')
+    expect(html).toContain('Duyên lành đã định')
+  })
+
+  it('alternates the photos left and right so the thread can weave between them', () => {
+    const html = renderToStaticMarkup(<ThreadGallery />)
+    const sides = [...html.matchAll(/data-side="(left|right)"/g)].map((m) => m[1])
+    expect(sides.slice(0, 4)).toEqual(['left', 'right', 'left', 'right'])
+  })
+
+  it('keeps the decorative thread out of the accessibility tree', () => {
+    const html = renderToStaticMarkup(<ThreadGallery />)
+    expect(html).toContain('id="photos"')
+    expect(html).toContain('aria-labelledby="photos-title"')
+  })
+})
+
+describe('PhotosSection chooser', () => {
+  it('renders the thread gallery when WebGL is unavailable (server render / old device)', () => {
+    const html = renderToStaticMarkup(<PhotosSection />)
+    expect(html).toContain('id="photos"')
+    expect(html).toContain('thread-gallery')
+    expect(html).not.toContain('corridor-wrap')
+  })
+
+  it('shows every photo in the folder in the fallback', () => {
+    const html = renderToStaticMarkup(<PhotosSection />)
+    expect(html.match(/<figure/g)).toHaveLength(photos.length)
   })
 })
 
@@ -98,6 +149,41 @@ describe('App wiring', () => {
     const html = renderToStaticMarkup(<App search={`?khach=${'a'.repeat(200)}`} />)
     expect(html).toContain('a'.repeat(40))
     expect(html).not.toContain('a'.repeat(41))
+  })
+})
+
+describe('HeroSection petals', () => {
+  it('renders decorative petals that are hidden from assistive technology', () => {
+    const html = renderToStaticMarkup(<HeroSection guestName={null} />)
+    expect(html.match(/class="petal-fall"/g)?.length).toBeGreaterThanOrEqual(10)
+    expect(html).toMatch(/<div class="petal-field[^"]*" aria-hidden="true">/)
+    for (const id of [1, 2, 3]) expect(html).toContain(`href="#petal-${id}"`)
+  })
+
+  it('paints the petals above the scrim but below the text', () => {
+    const html = renderToStaticMarkup(<HeroSection guestName={null} />)
+    expect(html.indexOf('hero-scrim')).toBeLessThan(html.indexOf('petal-field'))
+    expect(html.indexOf('petal-field')).toBeLessThan(html.indexOf('hero-inner'))
+  })
+
+  it('runs on its own, with no pause control on the page', () => {
+    const html = renderToStaticMarkup(<HeroSection guestName={null} />)
+    expect(html).not.toContain('petal-toggle')
+  })
+
+  it('defines both petal shapes it references', () => {
+    const html = renderToStaticMarkup(<HeroSection guestName={null} />)
+    for (const id of [1, 2, 3]) {
+      expect(html).toContain(`id="petal-${id}"`)
+      expect(html).toContain(`id="petal-grad-${id}"`)
+    }
+  })
+
+  it('keeps the invitation, names and call to action as real text', () => {
+    const html = renderToStaticMarkup(<HeroSection guestName="Anh Minh" />)
+    expect(html).toContain('Anh Minh')
+    expect(html).toContain(weddingConfig.couple.bride)
+    expect(html).toContain('Xem thời gian')
   })
 })
 

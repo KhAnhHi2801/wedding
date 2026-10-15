@@ -103,6 +103,7 @@
 .hero-date {
   font-size: var(--text-lead);
   margin-bottom: var(--space-4);
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.5);
 }
 
 /* ---------- sự kiện ---------- */
@@ -156,10 +157,6 @@
 }
 
 /* ---------- ảnh cưới / lời chúc (khung giữ chỗ) ---------- */
-.section-photos {
-  max-width: none;
-  background: var(--surface);
-}
 
 .section-sky {
   max-width: none;
@@ -174,18 +171,6 @@
 
 .section-sky .section-sub {
   color: #fff;
-}
-
-.placeholder-box {
-  min-height: 220px;
-  max-width: 520px;
-  margin: 0 auto;
-  border: 1.5px dashed rgba(255, 255, 255, 0.6);
-  border-radius: var(--radius-card);
-}
-
-.section-photos .placeholder-box {
-  border-color: var(--surface-deep);
 }
 
 /* ---------- gửi yêu thương ---------- */
@@ -515,4 +500,463 @@
   display: flex;
   gap: var(--space-1);
   justify-content: flex-end;
+}
+
+/* ---------- cánh hoa rơi ở hero ---------- */
+.petal-field {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  /* Cánh hoa sáng nằm trên lớp tối nền nên giữ nguyên màu tươi ở nửa trên; xuống vùng có chữ thì mờ bớt
+     để chữ trắng vẫn đọc rõ. */
+  -webkit-mask-image: linear-gradient(#000 0%, #000 42%, rgba(0, 0, 0, 0.3) 66%, rgba(0, 0, 0, 0.3) 100%);
+  mask-image: linear-gradient(#000 0%, #000 42%, rgba(0, 0, 0, 0.3) 66%, rgba(0, 0, 0, 0.3) 100%);
+}
+
+.petal-defs {
+  position: absolute;
+}
+
+/* Lớp 1: rơi từ trên xuống. Chỉ dùng transform nên chạy trên GPU, không buộc trình duyệt tính lại layout. */
+.petal-fall {
+  position: absolute;
+  top: 0;
+  left: var(--x);
+  width: var(--size);
+  animation: petal-fall var(--fall) linear var(--delay) infinite;
+}
+
+/* Lớp 2: lắc ngang qua lại như đung đưa theo gió. */
+.petal-sway {
+  display: block;
+  animation: petal-sway var(--sway-dur) ease-in-out var(--sway-delay) infinite alternate;
+}
+
+/* Lớp 3: nghiêng nhẹ và xoay tròn. Chu kỳ khác nhau ở mỗi lớp nên tổng hợp lại không lặp máy móc. */
+.petal-tumble {
+  display: block;
+  width: 100%;
+  height: auto;
+  opacity: var(--opacity);
+  animation: petal-tumble var(--tumble-dur) linear var(--tumble-delay) infinite var(--spin);
+}
+
+.petal-field.is-paused .petal-fall,
+.petal-field.is-paused .petal-sway,
+.petal-field.is-paused .petal-tumble {
+  animation-play-state: paused;
+}
+
+@keyframes petal-fall {
+  from {
+    transform: translate3d(0, -90px, 0);
+  }
+  to {
+    /* Dòng vh đứng trước làm phương án dự phòng cho trình duyệt chưa hiểu svh (iOS < 15.4). */
+    transform: translate3d(0, calc(100vh + 40px), 0);
+    transform: translate3d(0, calc(100svh + 40px), 0);
+  }
+}
+
+@keyframes petal-sway {
+  from {
+    transform: translateX(calc(var(--sway) * -1));
+  }
+  to {
+    transform: translateX(var(--sway));
+  }
+}
+
+/* Nghiêng vừa phải để dáng cánh vẫn nhận ra được, kết hợp xoay tròn đủ một vòng mỗi chu kỳ (đầu = cuối nên lặp liền mạch). */
+@keyframes petal-tumble {
+  0% {
+    transform: perspective(500px) rotateX(28deg) rotateY(-18deg) rotateZ(0deg);
+  }
+  50% {
+    transform: perspective(500px) rotateX(-22deg) rotateY(24deg) rotateZ(180deg);
+  }
+  100% {
+    transform: perspective(500px) rotateX(28deg) rotateY(-18deg) rotateZ(360deg);
+  }
+}
+
+/* Giảm chuyển động: cánh hoa đứng yên, rải ở nửa trên. */
+@media (prefers-reduced-motion: reduce) {
+  .petal-fall,
+  .petal-sway,
+  .petal-tumble {
+    animation: none;
+  }
+
+  .petal-fall {
+    top: var(--top);
+  }
+
+  .petal-tumble {
+    transform: perspective(500px) rotateX(20deg) rotateY(-12deg) rotateZ(35deg);
+  }
+}
+
+/* ---------- gallery sợi tơ hồng ---------- */
+.section-photos {
+  max-width: none;
+  background: var(--surface);
+  /* Phần ảnh rộng bằng cả màn hình, nội dung bên trong vẫn gói trong cột hẹp. */
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.section-photos > .section-title,
+.section-photos > .section-sub {
+  padding: 0 max(20px, env(safe-area-inset-right)) 0 max(20px, env(safe-area-inset-left));
+}
+
+.thread-gallery {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 76px;
+  max-width: 520px;
+  margin: 0 auto;
+  padding: 36px max(20px, env(safe-area-inset-right)) 8px max(20px, env(safe-area-inset-left));
+}
+
+.photo-card {
+  position: relative;
+  width: 64%;
+  margin: 0;
+  transition:
+    opacity 0.7s ease,
+    transform 0.7s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+.photo-card[data-side='left'] {
+  align-self: flex-start;
+  --tilt: -2.4deg;
+}
+
+.photo-card[data-side='right'] {
+  align-self: flex-end;
+  --tilt: 2.2deg;
+}
+
+.photo-card {
+  transform: rotate(var(--tilt));
+}
+
+.photo-card.is-hidden {
+  opacity: 0;
+  transform: translateY(32px) rotate(var(--tilt)) scale(0.96);
+  /* Chưa hiện thì không chạm được (tránh mở nhầm ảnh chưa thấy khi chạm vào khoảng trống). */
+  pointer-events: none;
+}
+
+/* Ảnh chưa hiện nhưng được focus bằng bàn phím thì hiện ra để người dùng thấy mình đang ở đâu. */
+.photo-card.is-hidden:focus-within {
+  opacity: 1;
+  transform: rotate(var(--tilt));
+}
+
+.photo-frame {
+  display: block;
+  width: 100%;
+  padding: 8px 8px 8px;
+  border: 0;
+  border-radius: 4px;
+  background: #fff;
+  box-shadow: 0 8px 22px rgba(59, 42, 45, 0.22);
+  cursor: pointer;
+}
+
+.photo-frame img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 2px;
+}
+
+.thread-svg {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: visible;
+}
+
+/* Sợi chỉ chui dưới ảnh; nút thắt nằm trên ảnh nên trông như buộc vào góc. */
+.thread-under {
+  z-index: 0;
+}
+
+.thread-knots {
+  z-index: 2;
+}
+
+.photo-card {
+  z-index: 1;
+}
+
+.thread-line,
+.thread-shadow {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* Sợi chỉ thật rất mảnh; càng dày càng giống con giun. */
+.thread-line {
+  stroke: var(--thread);
+  stroke-width: 1.5;
+}
+
+/* Bóng đổ nhẹ xuống nền giấy, lệch xuống dưới một chút cho có chiều nổi. */
+.thread-shadow {
+  stroke: rgba(59, 42, 45, 0.28);
+  stroke-width: 1.5;
+  transform: translate(1.2px, 2.6px);
+}
+
+.knot {
+  fill: var(--thread);
+  transform-box: fill-box;
+  transform-origin: center;
+  transform: scale(0);
+  transition: transform 0.4s cubic-bezier(0.3, 1.6, 0.5, 1) 0.1s;
+}
+
+.knot.is-tied {
+  transform: scale(1);
+}
+
+/* Điểm sáng nhỏ trên nút để nó có cảm giác là một cục thắt tròn. */
+.knot-shine {
+  fill: rgba(255, 255, 255, 0.55);
+}
+
+.bow-wrap {
+  position: relative;
+  z-index: 1;
+  align-self: center;
+  margin-top: 4px;
+  text-align: center;
+  transition: opacity 0.8s ease;
+}
+
+.bow-wrap.is-hidden {
+  opacity: 0;
+}
+
+.bow {
+  display: block;
+  margin: 0 auto 6px;
+  fill: var(--thread);
+}
+
+.bow-tail {
+  fill: none;
+  stroke: var(--thread);
+  stroke-width: 2.6;
+  stroke-linecap: round;
+}
+
+.bow-caption {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: 1.15rem;
+  color: var(--accent-strong);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .photo-card,
+  .knot,
+  .bow-wrap {
+    transition: none;
+  }
+}
+
+/* ---------- trình xem ảnh toàn màn hình ---------- */
+.photo-viewer {
+  width: 100%;
+  max-width: none;
+  height: 100%;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: rgba(20, 12, 14, 0.96);
+  color: #fff;
+}
+
+.photo-viewer::backdrop {
+  background: #000;
+}
+
+.photo-viewer-body {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.photo-viewer-stage {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  touch-action: pan-y pinch-zoom;
+}
+
+.photo-viewer-stage img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.photo-viewer-count {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: calc(14px + env(safe-area-inset-bottom));
+  text-align: center;
+  font-size: 0.9rem;
+  color: #f0dede;
+}
+
+.photo-viewer-close,
+.photo-viewer-nav {
+  position: absolute;
+  width: 48px;
+  height: 48px;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.16);
+  color: #fff;
+  font-size: 1.4rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.photo-viewer-close {
+  top: calc(12px + env(safe-area-inset-top));
+  right: max(12px, env(safe-area-inset-right));
+}
+
+.photo-viewer-nav {
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 2rem;
+}
+
+.photo-viewer-prev {
+  left: max(8px, env(safe-area-inset-left));
+}
+
+.photo-viewer-next {
+  right: max(8px, env(safe-area-inset-right));
+}
+
+.photo-viewer-nav:disabled {
+  opacity: 0.25;
+  cursor: default;
+}
+
+/* ---------- hành lang ký ức (gallery WebGL) ---------- */
+.section-corridor {
+  max-width: none;
+  padding: 0 0 var(--space-5);
+  /* Nền tối hòa vào các phần sáng ở hai đầu bằng dải chuyển màu. */
+  background: linear-gradient(
+    180deg,
+    var(--surface) 0,
+    #2b1a24 110px,
+    #2b1a24 calc(100% - 110px),
+    var(--surface) 100%
+  );
+  color: #fff;
+}
+
+.section-corridor > .section-title {
+  padding: 96px max(20px, env(safe-area-inset-right)) 0 max(20px, env(safe-area-inset-left));
+  color: #fff;
+}
+
+.section-corridor > .section-sub {
+  padding: 0 max(20px, env(safe-area-inset-right)) 0 max(20px, env(safe-area-inset-left));
+  color: #f0dce2;
+}
+
+/* Vùng cuộn cao vài màn hình; khung dính ở trong giữ nguyên trên màn hình khi cuộn qua. */
+.corridor-wrap {
+  position: relative;
+  height: 700vh;
+  height: var(--corridor-height, 700svh);
+}
+
+.corridor-stage {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  height: 100svh;
+  overflow: hidden;
+}
+
+.corridor-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  /* Cho phép cuộn dọc trang khi vuốt trên canvas. */
+  touch-action: pan-y;
+}
+
+.corridor-loading {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #f0dce2;
+  pointer-events: none;
+}
+
+.corridor-open {
+  position: absolute;
+  top: calc(14px + env(safe-area-inset-top));
+  right: max(14px, env(safe-area-inset-right));
+  min-height: var(--tap-min);
+  padding: 0 1.1rem;
+  border: 1.5px solid rgba(255, 255, 255, 0.55);
+  border-radius: var(--radius-pill);
+  background: rgba(30, 16, 24, 0.55);
+  color: #fff;
+  font: 600 0.9375rem / 1 var(--font-sans);
+  cursor: pointer;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+.corridor-hint {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: calc(var(--action-bar-h) + 18px + env(safe-area-inset-bottom));
+  padding: 0 20px;
+  text-align: center;
+  font-size: var(--text-body);
+  color: #f6e6ec;
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.6);
+  pointer-events: none;
+}
+
+/* Dòng chẩn đoán (chỉ hiện khi mở ?debug). */
+.gallery-debug {
+  margin: 0;
+  padding: 6px 12px;
+  background: #1c1219;
+  color: #ffd6e0;
+  font: 12px / 1.4 ui-monospace, monospace;
+  text-align: center;
 }

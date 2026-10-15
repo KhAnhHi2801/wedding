@@ -6,7 +6,7 @@ import { parseInvite } from './lib/url-params'
 import { EventsSection } from './sections/events-section'
 import { GiftSection } from './sections/gift-section'
 import { HeroSection } from './sections/hero-section'
-import { PhotosPlaceholder } from './sections/placeholder-sections'
+import { PhotosSection } from './sections/photos-section'
 import { WishesSection } from './sections/wishes-section'
 
 interface AppProps {
@@ -23,7 +23,7 @@ export default function App({ search }: AppProps) {
       <HeroSection guestName={invite.guestName} />
       <main>
         <EventsSection side={invite.side} />
-        <PhotosPlaceholder />
+        <PhotosSection />
         <WishesSection />
         <GiftSection />
       </main>

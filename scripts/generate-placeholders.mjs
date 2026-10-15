@@ -14,7 +14,7 @@ const root = join(dirname(fileURLToPath(import.meta.url)), '..', 'public', 'asse
 
 const PHOTO_COUNT = 8
 
-function svg(width, height, label, { from = '#EBCFCB', to = '#C98B8B', fg = '#6B5458', note = '' } = {}) {
+function svg(width, height, label, { from = '#EBCFCB', to = '#C98B8B', fg = '#6B5458', note = '', labelY = 48 } = {}) {
   return Buffer.from(`<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
   <defs>
@@ -24,8 +24,8 @@ function svg(width, height, label, { from = '#EBCFCB', to = '#C98B8B', fg = '#6B
     </linearGradient>
   </defs>
   <rect width="100%" height="100%" fill="url(#g)"/>
-  <text x="50%" y="48%" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="${Math.round(width / 16)}" fill="${fg}">${label}</text>
-  <text x="50%" y="56%" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="${Math.round(width / 28)}" fill="${fg}">${note}</text>
+  <text x="50%" y="${labelY}%" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="${Math.round(width / 16)}" fill="${fg}">${label}</text>
+  <text x="50%" y="${labelY + 8}%" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="${Math.round(width / 28)}" fill="${fg}">${note}</text>
 </svg>`)
 }
 
@@ -52,7 +52,7 @@ function qrSvg(size, label) {
 const jobs = [
   {
     file: 'hero/couple.webp',
-    svg: svg(800, 1200, 'ANH CAP DOI', { note: 'assets/hero/couple.webp (800x1200)' }),
+    svg: svg(800, 1200, 'ANH CAP DOI', { note: 'assets/hero/couple.webp (800x1200)', labelY: 30 }),
   },
   ...Array.from({ length: PHOTO_COUNT }, (_, i) => {
     const n = String(i + 1).padStart(2, '0')

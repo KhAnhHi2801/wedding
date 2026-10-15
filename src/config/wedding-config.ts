@@ -34,12 +34,6 @@ export interface BankAccount {
 export const weddingConfig = {
   couple: { bride: 'Minh Anh', groom: 'Hoàng Nam' },
   dateLabel: 'Thứ Bảy, 20 tháng 12, 2026',
-  heroPhoto: {
-    src: '/assets/hero/couple.webp',
-    width: 800,
-    height: 1200,
-    alt: 'Ảnh cô dâu và chú rể',
-  },
   groupTitles: { trai: 'Nhà trai', gai: 'Nhà gái' } satisfies Record<Side, string>,
   events: [
     {
@@ -84,11 +78,6 @@ export const weddingConfig = {
       qrSrc: '/assets/qr/groom-qr.webp',
     },
   } satisfies { bride: BankAccount; groom: BankAccount },
-  /** Danh sách ảnh gallery (dùng ở phase gallery). Thêm/bớt dòng để đổi số ảnh. */
-  photos: Array.from({ length: 8 }, (_, i) => ({
-    src: `/assets/photos/photo-${String(i + 1).padStart(2, '0')}.webp`,
-    alt: `Ảnh cưới ${i + 1}`,
-  })),
   /** Đường dẫn nhạc nền trong `public/assets/music/`; null = không có nhạc, ẩn nút bật/tắt. */
   music: null as string | null,
   /**

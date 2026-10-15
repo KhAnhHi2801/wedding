@@ -1,6 +1,6 @@
 ---
 title: "Phase 1: Setup, config, static sections"
-status: todo
+status: completed
 priority: P1
 effort: "1.5d"
 dependencies: []

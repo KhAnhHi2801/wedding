@@ -1,10 +1,10 @@
 ---
 title: "wedding-website-3d"
-description: "Web đám cưới mobile-first (Vite + React + TS + R3F), 3D ở hero/gallery/bầu trời lời chúc, lời chúc lưu Google Sheet"
-status: pending
+description: "Web đám cưới mobile-first (Vite + React + TS), cánh hoa hero bằng CSS/SVG, gallery và bầu trời lời chúc (công nghệ chốt ở phase 4), lời chúc lưu Google Sheet"
+status: in-progress
 priority: P1
 effort: "~7d"
-tags: [wedding, react, threejs, r3f, google-sheets, mobile-first]
+tags: [wedding, react, svg, css-animation, google-sheets, mobile-first]
 created: 2026-10-15
 ---
 
@@ -12,7 +12,7 @@ created: 2026-10-15
 
 ## Overview
 
-Một trang cuộn dọc, xem chủ yếu trên điện thoại (link Zalo/Facebook). Thông tin thật (lịch trình, bản đồ, QR/số tài khoản) là HTML, dùng được khi không có WebGL. 3D chỉ ở 3 chỗ: hero (ảnh cặp đôi + lớp hạt/cánh hoa nhẹ), gallery ảnh cong (chạm để xem toàn màn hình), bầu trời lời chúc (mỗi lời chúc = một cánh hoa/đèn lồng phát sáng). Lời chúc công khai, lưu Google Sheet qua Google Apps Script web app.
+Một trang cuộn dọc, xem chủ yếu trên điện thoại (link Zalo/Facebook). Thông tin thật (lịch trình, bản đồ, QR/số tài khoản) là HTML, dùng được khi không có WebGL. Hiệu ứng ở 3 chỗ: hero (ảnh cặp đôi + cánh hoa rơi bằng SVG/CSS), gallery "sợi tơ hồng" (chạm ảnh để xem toàn màn hình), bầu trời lời chúc (mỗi lời chúc = một cánh hoa/đèn lồng phát sáng). Gallery là "sợi tơ hồng" (SVG + cuộn trang); bầu trời lời chúc chốt công nghệ ở đầu phase 5 (CSS/canvas 2D, xem D14). Lời chúc công khai, lưu Google Sheet qua Google Apps Script web app.
 
 Cá nhân hóa qua URL: `?nha=trai|gai` chọn thông tin (thời gian, địa chỉ) của nhà trai hoặc nhà gái; `?khach=<tên>` hiện lời mời đích danh, thiếu thì dùng lời mời chung.
 
@@ -43,6 +43,7 @@ Greenfield: thư mục dự án đang trống, chưa có plan nào khác.
 | D11 | Mọi asset (ảnh hero, ảnh gallery, QR, ảnh chia sẻ, nhạc) là placeholder nằm trong `public/assets/`, đường dẫn khai báo trong `wedding-config.ts`. Người dùng thay file cùng tên (hoặc sửa config) là xong, không sửa code | Nội dung thật có sau khi web hoàn thiện |
 | D12 | Phần "Gửi yêu thương" có **2 tài khoản + 2 QR: cô dâu và chú rể**, hiện giống nhau với mọi giá trị `?nha` (không tách theo nhà). Lời dẫn khéo léo, nhẹ nhàng; không dùng "quét mã/chuyển khoản" làm tiêu đề (**người dùng chốt, thay quyết định một QR chung trước đó**) | Config có `gift: { bride, groom }` |
 | D13 | Tên mục hiển thị: "Gửi yêu thương" (thay "Mừng cưới"); nút thanh hành động: "Yêu thương" | Tế nhị hơn, đúng ý người dùng |
+| D14 | Hiệu ứng làm bằng **SVG + CSS/JS nhẹ, không dùng Three.js**: cánh hoa hero (CSS), gallery sợi tơ hồng (SVG vẽ theo cuộn). Đã gỡ gói `three`, `@react-three/fiber` và hạ tầng 3D chưa dùng. Phase 5 (bầu trời lời chúc) chọn CSS hoặc canvas 2D | CSS/SVG nhẹ hơn khoảng 245KB gzip, chạy ổn trong in-app browser; Three.js chỉ đáng khi có vài trăm vật thể hoặc hình khối 3D thật |
 
 ## Phases
 
@@ -50,8 +51,8 @@ Greenfield: thư mục dự án đang trống, chưa có plan nào khác.
 |---|-------|--------|-----------|
 | 1 | [Mockup, setup, config, URL params, static sections](./phase-01-start.md) | Pending | - |
 | 2 | [Wishes backend and client](./phase-02-wishes-backend-and-client.md) | Pending | 1 |
-| 3 | [3D foundation and hero](./phase-03-3d-foundation-and-hero.md) | Pending | 1 |
-| 4 | [Photo gallery 3D](./phase-04-photo-gallery-3d.md) | Pending | 3 |
+| 3 | [Hero petals (CSS/SVG) and 3D foundation](./phase-03-3d-foundation-and-hero.md) | Awaiting approval | 1 |
+| 4 | [Photo gallery - sợi tơ hồng](./phase-04-photo-gallery-3d.md) | In progress | 1 |
 | 5 | [Wish sky 3D](./phase-05-wish-sky-3d.md) | Pending | 2, 3 |
 | 6 | [Performance, QA and handover](./phase-06-performance-qa-and-deploy.md) | Pending | 1-5 |
 

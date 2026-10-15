@@ -4,8 +4,8 @@ import { WishList } from '../components/wish-list'
 import { useWishes } from '../hooks/use-wishes'
 
 /**
- * Phần lời chúc: nút mở form, danh sách HTML. Bầu trời 3D (phase sau) sẽ đặt thêm ở đây,
- * danh sách này vẫn giữ làm nơi đọc đầy đủ và phương án dự phòng khi không có WebGL.
+ * Phần lời chúc: nút mở form, danh sách HTML. Hiệu ứng bầu trời đèn lồng (phase sau) sẽ đặt thêm ở đây,
+ * danh sách này vẫn giữ làm nơi đọc đầy đủ và phương án dự phòng.
  */
 export function WishesSection() {
   const wishes = useWishes()

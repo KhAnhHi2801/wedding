@@ -1,57 +1,53 @@
 ---
-title: "Phase 4: Photo gallery 3D"
-status: todo
+title: "Phase 4: Photo gallery - sợi tơ hồng"
+status: in-progress
 priority: P2
 effort: "1d"
-dependencies: [3]
+dependencies: [1]
 ---
 
-# Phase 4: Photo gallery 3D
+# Phase 4: Photo gallery - sợi tơ hồng
 
 ## Overview
 
-Gallery ảnh cưới xếp cong trong không gian 3D, vuốt ngang để xoay, kèm pipeline tối ưu ảnh và fallback carousel/lưới HTML.
+Gallery "sợi tơ hồng": một sợi chỉ đỏ luồn qua từng bức ảnh, được vẽ dần theo ngón tay cuộn; mỗi ảnh hiện ra khi sợi chỉ chạm tới và được buộc bằng một nút thắt ở góc ảnh; cuối cùng sợi chỉ buộc thành nơ ("Duyên lành đã định"). Chạm ảnh để xem toàn màn hình.
+
+Hướng này được chọn sau khi brainstorm các kiểu gallery (polaroid rải bàn, vòng xoay 3D, tấm vải vô hạn, lau sương, đèn lồng soi, cánh hoa nở thành ảnh...). Lý do: độc, gắn với chủ đề tơ hồng se duyên (cùng mạch với câu báo lỗi "Tơ hồng đã se..."), khách chỉ cần cuộn nên xem hết ảnh, không tranh cuộn dọc, chạy chắc trong in-app browser, **không cần Three.js** (đã gỡ gói `three`, `@react-three/fiber` và hạ tầng 3D chưa dùng).
 
 ## Requirements
 
-- Functional: 8-12 ảnh xếp cung tròn/trụ; vuốt ngang xoay có quán tính; ảnh trung tâm rõ nhất; **chạm ảnh → trình xem toàn màn hình** (HTML) vuốt qua lại giữa các ảnh; gợi ý "Vuốt để xem" hiện ở lần đầu rồi ẩn sau tương tác đầu tiên.
-- Non-functional: cuộn dọc trang không bị chặn (`touch-action: pan-y` trên canvas); ngân sách texture ~≤70MB GPU; mỗi ảnh ≤ ~120KB trên mạng.
+- Functional: ảnh xếp so le trái/phải, hơi nghiêng; sợi chỉ đỏ được vẽ dần theo cuộn; ảnh và nút thắt hiện khi sợi chỉ tới; nơ ở cuối; chạm ảnh mở trình xem toàn màn hình (vuốt, nút, phím mũi tên, Esc, trả focus).
+- Non-functional: không tranh cuộn dọc (không có cử chỉ kéo riêng); không nhảy layout khi ảnh tải (`width/height` + `loading="lazy"`); bật giảm chuyển động thì sợi chỉ và mọi ảnh hiện đủ ngay; nếu JS lỗi sau khi trang đã dựng thì ảnh vẫn xem được (trạng thái ban đầu là hiện đủ, chỉ ẩn sau khi đo thành công).
 
 ## Architecture
 
-- Dùng lại `scripts/optimize-images.mjs` từ phase 1 cho ảnh gallery (không viết script mới); ảnh đọc từ `public/assets/photos/` theo danh sách trong config.
-- Mở rộng `scripts/optimize-images.mjs` cho gallery: xuất thêm bản 768px (tier thấp) và blur placeholder nhỏ cho fallback/lúc chờ tải (hai phần này được chuyển từ phase 1 vì chỉ gallery dùng).
-- `photo-viewer.tsx`: trình xem toàn màn hình bằng HTML (`dialog`, `object-fit: contain`, vuốt trái/phải, nút đóng ≥44px, Esc, trả focus về ảnh đã chạm, khóa cuộn nền). Dùng chung cho cả gallery 3D và fallback. Phân biệt chạm với kéo xoay bằng ngưỡng di chuyển (chạm = di chuyển < ~8px).
-- `src/3d/gallery-scene.tsx`: mặt phẳng ảnh đặt theo cung; `useTexture` chỉ khi section gần viewport; `anisotropy` thấp, bật mipmap; xoay bằng pointer events + damping (không dùng OrbitControls để tránh chiếm cuộn dọc).
-- Danh sách ảnh và alt text trong `wedding-config.ts` (một nguồn dữ liệu cho cả 3D và fallback).
-- Fallback `gallery-fallback.tsx`: carousel `scroll-snap` ngang với `<img loading="lazy">` cùng ảnh đã tối ưu; dùng khi tier `none`, reduced-motion hoặc lỗi tải texture.
+- `src/lib/thread-path.ts` (thuần, có test): `buildThreadPath` (Catmull-Rom sang Bézier bậc ba đi đúng qua các điểm), `findLengthAtY` (chiều dài đã vẽ khi "đầu bút" ở toạ độ dọc Y), `countReached`, `lengthNearPoint`.
+- `src/hooks/use-red-thread.ts`: đo vị trí thật của các `[data-pin]` (mỗi ảnh, `data-side=left|right`) và `[data-thread-end]` (nơ), thêm điểm chùng giữa hai ảnh cho sợi chỉ võng tự nhiên, dựng đường cong, lấy mẫu độ dài, rồi cập nhật `stroke-dashoffset` mỗi frame cuộn (rAF, listener passive). "Đầu bút" bám theo điểm ở 72% chiều cao màn hình. Đo theo bố cục (`offsetLeft/Top/Width/Height`), không dùng `getBoundingClientRect`, vì ảnh chưa hiện đang bị transform (dịch xuống, thu nhỏ) nên đo theo hộp hiển thị sẽ lệch; phép nghiêng của ảnh được tính lại bằng toán. Đo lại khi container đổi kích thước (`ResizeObserver`) hoặc xoay màn hình. Trạng thái ban đầu là mọi thứ hiện đủ; chỉ khi đo xong và được phép chuyển động mới ẩn các ảnh chưa được chỉ chạm tới (tránh mất ảnh nếu JS lỗi).
+- `src/sections/photos-section.tsx`: hai SVG phủ container: sợi chỉ nằm **dưới** các ảnh (chỉ lộ ở khoảng trống, tránh vệt cắt ngang ảnh), nút thắt nằm **trên** ảnh ở góc trong phía trên. Cả đường chính lẫn vệt glow đều được vẽ dần.
+- `src/components/photo-viewer.tsx`: `<dialog>` toàn màn hình; vuốt ngang ≥50px, nút trước/sau, phím mũi tên, Esc, đếm "n / tổng", khóa cuộn nền; `touch-action: pan-y pinch-zoom`.
+- Dữ liệu: `weddingConfig.photos` (`src`, `alt`, `width`, `height`); ảnh tạm 4:5, đổi `width/height` nếu ảnh thật khác tỉ lệ.
+- Màu sợi chỉ: token `--thread` (#c2283f).
 
 ## Related Code Files
 
-- Create: `src/3d/gallery-scene.tsx`, `src/components/gallery-fallback.tsx`, `src/components/gallery-section.tsx`, `src/components/photo-viewer.tsx`
-- Modify: `src/config/wedding-config.ts` (danh sách ảnh + alt)
-
-## Implementation Steps
-
-1. Chạy script tối ưu ảnh (phase 1) với ảnh gallery placeholder, ghi lại dung lượng.
-2. Viết fallback carousel trước (luôn dùng được), rồi scene 3D.
-3. Layout cung + xoay có quán tính; giới hạn tốc độ; snap về ảnh gần nhất khi thả.
-4. Lazy-load texture theo khoảng cách tới viewport; dispose khi unmount.
-5. Viết `photo-viewer` + gợi ý "Vuốt để xem"; nối chạm ảnh (raycast) mở viewer đúng ảnh.
-6. Kiểm tra cuộn dọc khi chạm vào canvas trên iOS Safari và Android.
+- Create: `src/lib/thread-path.ts` (+ test), `src/hooks/use-red-thread.ts` (+ test), `src/components/photo-viewer.tsx` (+ test), `src/sections/photos-section.tsx`
+- Move: `src/hooks/use-near-viewport.ts` (từ `src/3d/scene-hooks.ts`), `src/components/hero-petals.tsx` (từ `src/3d/hero-effect.tsx`)
+- Modify: `src/config/wedding-config.ts` (kích thước ảnh), `src/app.tsx`, `src/styles/sections.css`, `src/styles/tokens.css`
+- Delete: `src/3d/*` (hạ tầng 3D chưa dùng), `src/sections/placeholder-sections.tsx`
 
 ## Success Criteria
 
-- [ ] Tổng dung lượng ảnh gallery ≤ ~1.2MB (12 ảnh); không tải khi chưa gần viewport
-- [ ] Vuốt ngang xoay, vuốt dọc vẫn cuộn trang
-- [ ] iOS Safari không mất context khi cuộn qua lại gallery
-- [ ] Tier `none`/reduced-motion hiển thị carousel đủ ảnh, có alt text
-- [ ] ≥30fps khi xoay trên máy thật
-- [ ] Chạm ảnh mở trình xem toàn màn hình đúng ảnh (cả 3D và fallback); kéo xoay không mở nhầm
-- [ ] Viewer đóng được bằng nút/Esc, trả focus đúng chỗ; gợi ý vuốt ẩn sau lần tương tác đầu
+- [x] Sợi chỉ vẽ dần theo cuộn, ảnh và nút thắt hiện khi chỉ chạm tới (đã kiểm bằng Chrome thật: offset 2904 → 0 qua các mốc cuộn, ẩn/hiện đúng cặp)
+- [x] Sợi chỉ chui dưới ảnh, không cắt ngang ảnh; glow không chạy trước đầu sợi chỉ
+- [x] Chạm ảnh mở trình xem; vuốt/phím/nút đổi ảnh; Esc đóng và trả focus về ảnh (đã kiểm bằng Chrome thật + test)
+- [x] Giảm chuyển động: mọi ảnh, nút thắt, nơ hiện đủ ngay (đã kiểm bằng Chrome thật)
+- [x] Đổi kích thước (375 → 360px) thì sợi chỉ được đo lại, không tràn ngang
+- [ ] Mượt trên điện thoại thật (iOS Safari, Android, in-app Zalo/Facebook), đo ở phase 6; kiểm tra thêm độ dài đường của Safari (getTotalLength xấp xỉ) không để lại chấm ở đầu sợi chỉ
+- [ ] Hiển thị đẹp với ảnh cưới thật (tỉ lệ ngang/dọc khác nhau), kiểm khi người dùng thay ảnh
 
 ## Risk Assessment
 
-- Texture lớn làm iOS mất WebGL context → cấp độ 768px cho tier low; tín hiệu: context lost → hạ kích thước hoặc giảm số ảnh cùng lúc trong cảnh (chỉ giữ ảnh gần trung tâm).
-- Cử chỉ vuốt xung đột với cuộn dọc → `touch-action: pan-y` + ngưỡng nhận hướng; tín hiệu: người dùng test không cuộn qua được → bỏ xoay bằng kéo, chuyển sang xoay theo vị trí cuộn.
-- Ảnh gốc riêng tư/nặng không nên vào repo.
+- Sợi chỉ lệch khỏi ảnh nếu layout đổi sau khi đo (đã xử lý: đo theo bố cục, `ResizeObserver` đo lại) (ảnh tải làm đổi chiều cao, font tải xong): ảnh có `width/height` nên chiều cao biết trước; `ResizeObserver` đo lại khi container đổi. Tín hiệu: nút thắt không nằm ở góc ảnh khi thử máy thật → đo lại sau sự kiện `load` của ảnh và font.
+- Ảnh thật có tỉ lệ rất khác (ngang hẹp): khung `width: 64%` vẫn đúng nhưng chiều cao thay đổi, sợi chỉ tự thích ứng vì đo theo DOM thật.
+- Cuộn nhanh: `requestAnimationFrame` gộp sự kiện; nếu giật trên máy yếu thì giảm `SAMPLE_COUNT` hoặc bỏ glow.
+- Số ảnh nhiều (hơn khoảng 20): trang rất dài; cân nhắc giới hạn hoặc gom nhóm.
