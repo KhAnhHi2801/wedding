@@ -111,7 +111,7 @@ describe('sending', () => {
       submit.resolve({ id: 'server-1', status: 'visible' })
       await sending
     })
-    expect(outcome).toEqual({ ok: true, hidden: false })
+    expect(outcome).toEqual({ ok: true, hidden: false, id: 'server-1' })
     expect(ids()).toEqual(['server-1', 'old'])
     expect(api.submitWish.mock.calls[0][0]).toMatchObject({ name: 'An', requestId: 'req-1', website: '' })
   })

@@ -1,16 +1,20 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { WishFormSheet } from '../components/wish-form-sheet'
 import { WishList } from '../components/wish-list'
-import { useWishes } from '../hooks/use-wishes'
+import { WishSky } from '../components/wish-sky'
+import { isPendingWish, useWishes } from '../hooks/use-wishes'
 
 /**
- * Phần lời chúc: nút mở form, danh sách HTML. Hiệu ứng bầu trời đèn lồng (phase sau) sẽ đặt thêm ở đây,
- * danh sách này vẫn giữ làm nơi đọc đầy đủ và phương án dự phòng.
+ * Phần lời chúc: nút mở form, bầu trời đèn lồng và danh sách HTML (nơi đọc đầy đủ, đọc được cả khi canvas không chạy).
  */
 export function WishesSection() {
   const wishes = useWishes()
   const [sheetOpen, setSheetOpen] = useState(false)
   const [notice, setNotice] = useState<string | null>(null)
+  const [highlightId, setHighlightId] = useState<string | null>(null)
+  const skyRef = useRef<HTMLDivElement>(null)
+  // Lời chúc đang gửi chưa có id thật nên không đưa lên trời: tránh đèn nhảy vị trí khi nhận id, và không để "ma" nếu gửi lỗi.
+  const skyWishes = wishes.items.filter((wish) => !isPendingWish(wish))
 
   return (
     <section className="section section-sky" id="wishes" aria-labelledby="wishes-title">
@@ -36,6 +40,10 @@ export function WishesSection() {
         {notice}
       </p>
 
+      <div ref={skyRef}>
+        <WishSky wishes={skyWishes} highlightId={highlightId} />
+      </div>
+
       <WishList
         items={wishes.items}
         status={wishes.status}
@@ -52,13 +60,18 @@ export function WishesSection() {
         open={sheetOpen}
         onClose={() => setSheetOpen(false)}
         onSend={wishes.send}
-        onSent={(hidden) =>
+        onSent={(hidden, id) => {
+          if (id) {
+            setHighlightId(id)
+            // Đưa bầu trời vào tầm nhìn để khách thấy đèn của mình bay lên.
+            skyRef.current?.scrollIntoView({ block: 'center', behavior: 'smooth' })
+          }
           setNotice(
             hidden
               ? 'Cảm ơn bạn! Lời chúc đã được gửi và sẽ hiện sau khi cô dâu chú rể xem qua.'
               : 'Cảm ơn bạn đã gửi lời chúc ♡',
           )
-        }
+        }}
       />
     </section>
   )

@@ -1,6 +1,6 @@
 ---
 title: "Phase 3: Hero petals (CSS/SVG)"
-status: in-progress
+status: completed
 priority: P1
 effort: "1d"
 dependencies: [1]

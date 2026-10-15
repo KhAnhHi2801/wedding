@@ -1,6 +1,6 @@
 ---
 title: "Phase 4: Photo gallery - sợi tơ hồng"
-status: in-progress
+status: completed
 priority: P2
 effort: "1d"
 dependencies: [1]

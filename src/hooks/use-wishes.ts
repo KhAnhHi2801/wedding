@@ -14,7 +14,7 @@ import { appendPage, mergeFirstPage } from '../lib/wishes-merge'
 
 export type ListStatus = 'loading' | 'ready' | 'error'
 export type SendError = WishError | WishApiErrorCode
-export type SendOutcome = { ok: true; hidden: boolean } | { ok: false; error: SendError }
+export type SendOutcome = { ok: true; hidden: boolean; id?: string } | { ok: false; error: SendError }
 
 export interface SendInput {
   name: string
@@ -27,6 +27,9 @@ export interface SendInput {
 
 const PENDING_PREFIX = 'local-'
 const isPending = (wish: Wish) => wish.id.startsWith(PENDING_PREFIX)
+
+/** Lời chúc đang gửi (chưa có id thật từ máy chủ). */
+export const isPendingWish = isPending
 
 export function useWishes() {
   // Hiện ngay trang đầu đã lưu lần trước, rồi cập nhật từ máy chủ (stale-while-revalidate).
@@ -128,7 +131,7 @@ export function useWishes() {
       const confirmed: Wish = { ...optimistic, id: result.id }
       confirmedRef.current = [confirmed, ...confirmedRef.current]
       setItems((current) => current.map((wish) => (wish.id === pendingId ? confirmed : wish)))
-      return { ok: true, hidden: false }
+      return { ok: true, hidden: false, id: result.id }
     } catch (error) {
       setItems((current) => current.filter((wish) => wish.id !== pendingId))
       return { ok: false, error: error instanceof WishApiError ? error.code : 'network' }

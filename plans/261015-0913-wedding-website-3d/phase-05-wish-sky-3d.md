@@ -1,6 +1,6 @@
 ---
 title: "Phase 5: Wish sky 3D"
-status: todo
+status: in-progress
 priority: P1
 effort: "1.5d"
 dependencies: [2, 3]
@@ -9,6 +9,8 @@ dependencies: [2, 3]
 # Phase 5: Wish sky 3D
 
 ## Overview
+
+**Quyết định công nghệ:** canvas 2D (sprite đèn lồng vẽ sẵn + quầng sáng gradient), không dùng Three.js: ≤90 vật thể, không tốn thêm bundle, chạy được cả khi không có WebGL. Triển khai: `src/components/wish-sky.tsx`, `src/lib/wish-position.ts` (hash id → vị trí, có test), nối ở `src/sections/wishes-section.tsx`. Các mục "InstancedMesh/shader" bên dưới là thiết kế ban đầu, thay bằng tương đương canvas 2D; đèn đang gửi chưa có id thật không đưa lên trời (tránh nhảy vị trí/ma khi lỗi).
 
 Bầu trời hoàng hôn pastel với cánh hoa/đèn lồng phát sáng bay lơ lửng, mỗi lời chúc là một đối tượng; chạm để đọc. Lời chúc mới bay lên ngay sau khi gửi. Ghép với form/list của phase 2.
 

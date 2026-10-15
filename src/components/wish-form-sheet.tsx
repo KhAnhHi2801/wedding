@@ -25,7 +25,7 @@ interface WishFormSheetProps {
   onClose: () => void
   onSend: (input: SendInput) => Promise<SendOutcome>
   /** Gọi sau khi gửi thành công; `hidden` = chờ duyệt, không hiện công khai. */
-  onSent: (hidden: boolean) => void
+  onSent: (hidden: boolean, id?: string) => void
 }
 
 /**
@@ -77,7 +77,7 @@ export function WishFormSheet({ open, onClose, onSend, onSent }: WishFormSheetPr
       setMessage('')
       requestId.current = newId()
       onClose()
-      onSent(outcome.hidden)
+      onSent(outcome.hidden, outcome.id)
     } else {
       setError(errorText(outcome.error))
     }

@@ -960,3 +960,44 @@
   font: 12px / 1.4 ui-monospace, monospace;
   text-align: center;
 }
+
+/* ---------- bầu trời đèn lồng ---------- */
+.wish-sky {
+  max-width: 560px;
+  margin: 0 auto var(--space-3);
+}
+
+.wish-sky-stage {
+  position: relative;
+  height: 400px;
+  overflow: hidden;
+  border-radius: var(--radius-card);
+  background: radial-gradient(120% 80% at 50% 100%, rgba(255, 170, 120, 0.22), rgba(40, 20, 45, 0.55));
+}
+
+.wish-sky-canvas {
+  display: block;
+  touch-action: pan-y;
+}
+
+.wish-sky-card {
+  min-height: 5.5em;
+  padding: var(--space-2) var(--space-3);
+  text-align: center;
+  color: #fff;
+}
+
+.wish-sky-card .wish-name {
+  color: #ffe3b8;
+}
+
+.wish-sky-hint {
+  margin: 0;
+  opacity: 0.9;
+}
+
+@media (min-width: 768px) {
+  .wish-sky-stage {
+    height: 460px;
+  }
+}
