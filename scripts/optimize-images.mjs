@@ -1,8 +1,8 @@
 /**
  * Nén ảnh gốc trong assets-src/ thành WebP nhẹ đặt vào public/assets/.
  *
- *   assets-src/hero/*   -> public/assets/hero/*.webp    (vừa khung 683x1024, cảnh báo nếu > 150KB)
- *   assets-src/photos/* -> public/assets/photos/*.webp  (cạnh dài <= 1024px)
+ *   assets-src/hero/*   -> public/assets/hero/*.webp    (vừa khung 1600x2400, cảnh báo nếu > 350KB)
+ *   assets-src/photos/* -> public/assets/photos/*.webp  (cạnh dài <= 1600px)
  *   assets-src/qr/*     -> public/assets/qr/*.webp      (cạnh dài <= 1024px, lossless để quét được)
  *   assets-src/share/*  -> public/assets/share/*.jpg    (rộng 1200px)
  *
@@ -23,17 +23,17 @@ const srcRoot = join(repo, 'assets-src')
 const outRoot = join(repo, 'public', 'assets')
 const IMAGE_EXT = new Set(['.jpg', '.jpeg', '.png', '.webp'])
 const HEIC_EXT = new Set(['.heic', '.heif'])
-const HERO_MAX_BYTES = 150 * 1024
+const HERO_MAX_BYTES = 350 * 1024
 
 const profiles = {
   hero: {
     ext: '.webp',
     maxBytes: HERO_MAX_BYTES,
-    pipeline: (img) => img.resize({ width: 683, height: 1024, fit: 'inside', withoutEnlargement: true }).webp({ quality: 75 }),
+    pipeline: (img) => img.resize({ width: 1600, height: 2400, fit: 'inside', withoutEnlargement: true }).webp({ quality: 78 }),
   },
   photos: {
     ext: '.webp',
-    pipeline: (img) => img.resize({ width: 1024, height: 1024, fit: 'inside', withoutEnlargement: true }).webp({ quality: 75 }),
+    pipeline: (img) => img.resize({ width: 1600, height: 1600, fit: 'inside', withoutEnlargement: true }).webp({ quality: 78 }),
   },
   // QR: lossless để các module vuông giữ nguyên; cạnh dài tối đa 1024px là đủ cho khung 200px.
   qr: {

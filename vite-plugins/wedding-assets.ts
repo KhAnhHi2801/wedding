@@ -12,7 +12,8 @@ export interface AssetImage {
 
 const IMAGE_FILE = /\.(webp|jpe?g|png|avif)$/i
 const WARN_BYTES = 800 * 1024
-const WARN_SIDE = 2000
+// Hero nén ra 1600x2400 (xem scripts/optimize-images.mjs): chỉ cạnh dài vượt mức này mới là ảnh chưa nén.
+const WARN_SIDE = 2500
 
 // So sánh theo số tự nhiên: photo-2 đứng trước photo-10; "ảnh 2 (1)" đúng thứ tự người dùng mong đợi.
 const collator = new Intl.Collator('vi', { numeric: true, sensitivity: 'base' })

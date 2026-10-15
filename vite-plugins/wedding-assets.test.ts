@@ -71,7 +71,7 @@ describe('readImages', () => {
   })
 
   it('warns about a large image but still lists it', async () => {
-    await addImage('photos', 'big.png', 2400, 1600, 'png')
+    await addImage('photos', 'big.png', 3000, 2000, 'png')
     const warn = vi.fn()
     const photos = await readImages(publicDir, 'photos', 'x', warn)
     expect(photos).toHaveLength(1)

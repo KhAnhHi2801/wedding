@@ -24,6 +24,13 @@
   --sky-top: #7a4a63;
   --sky-bottom: #94606e; /* đủ tối để chữ trắng đạt AA (~5:1) ở mọi điểm của vùng nền lời chúc */
 
+  /*
+   * Hành trình ngày → hoàng hôn. Hook `useTimeOfDay` ghi đè hai biến này theo cuộn; giá trị dưới đây là
+   * trạng thái ban đầu (và khi JS chưa chạy). Mốc màu và công thức nằm ở src/journey/time-of-day.ts.
+   */
+  --tod: 0;
+  --journey-bg: var(--bg);
+
   --font-serif: 'Playfair Display', Georgia, 'Noto Serif', serif;
   --font-sans: 'Be Vietnam Pro', system-ui, -apple-system, 'Segoe UI', sans-serif;
 

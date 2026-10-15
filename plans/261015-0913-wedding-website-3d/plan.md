@@ -5,6 +5,7 @@ status: in-progress
 priority: P1
 effort: "~7d"
 tags: [wedding, react, svg, css-animation, google-sheets, mobile-first]
+blockedBy: [261015-1455-cong-vom-hoa-journey]
 created: 2026-10-15
 ---
 
@@ -43,7 +44,7 @@ Greenfield: thư mục dự án đang trống, chưa có plan nào khác.
 | D11 | Mọi asset (ảnh hero, ảnh gallery, QR, ảnh chia sẻ, nhạc) là placeholder nằm trong `public/assets/`, đường dẫn khai báo trong `wedding-config.ts`. Người dùng thay file cùng tên (hoặc sửa config) là xong, không sửa code | Nội dung thật có sau khi web hoàn thiện |
 | D12 | Phần "Gửi yêu thương" có **2 tài khoản + 2 QR: cô dâu và chú rể**, hiện giống nhau với mọi giá trị `?nha` (không tách theo nhà). Lời dẫn khéo léo, nhẹ nhàng; không dùng "quét mã/chuyển khoản" làm tiêu đề (**người dùng chốt, thay quyết định một QR chung trước đó**) | Config có `gift: { bride, groom }` |
 | D13 | Tên mục hiển thị: "Gửi yêu thương" (thay "Mừng cưới"); nút thanh hành động: "Yêu thương" | Tế nhị hơn, đúng ý người dùng |
-| D14 | Hiệu ứng làm bằng **SVG + CSS/JS nhẹ, không dùng Three.js**: cánh hoa hero (CSS), gallery sợi tơ hồng (SVG vẽ theo cuộn). Đã gỡ gói `three`, `@react-three/fiber` và hạ tầng 3D chưa dùng. Phase 5 (bầu trời lời chúc) chọn CSS hoặc canvas 2D | CSS/SVG nhẹ hơn khoảng 245KB gzip, chạy ổn trong in-app browser; Three.js chỉ đáng khi có vài trăm vật thể hoặc hình khối 3D thật |
+| D14 (cập nhật) | Gallery đã chuyển sang **hành lang Three.js** (lazy chunk, fallback sợi tơ hồng SVG khi không có WebGL; ảnh quét tự động từ `public/assets/photos`); bầu trời lời chúc dùng **canvas 2D** (không cần Three.js). Nội dung gốc: hiệu ứng làm bằng **SVG + CSS/JS nhẹ, không dùng Three.js**: cánh hoa hero (CSS), gallery sợi tơ hồng (SVG vẽ theo cuộn). Đã gỡ gói `three`, `@react-three/fiber` và hạ tầng 3D chưa dùng. Phase 5 (bầu trời lời chúc) chọn CSS hoặc canvas 2D | CSS/SVG nhẹ hơn khoảng 245KB gzip, chạy ổn trong in-app browser; Three.js chỉ đáng khi có vài trăm vật thể hoặc hình khối 3D thật |
 
 ## Phases
 
@@ -52,8 +53,8 @@ Greenfield: thư mục dự án đang trống, chưa có plan nào khác.
 | 1 | [Mockup, setup, config, URL params, static sections](./phase-01-start.md) | Pending | - |
 | 2 | [Wishes backend and client](./phase-02-wishes-backend-and-client.md) | Pending | 1 |
 | 3 | [Hero petals (CSS/SVG) and 3D foundation](./phase-03-3d-foundation-and-hero.md) | Awaiting approval | 1 |
-| 4 | [Photo gallery - sợi tơ hồng](./phase-04-photo-gallery-3d.md) | In progress | 1 |
-| 5 | [Wish sky 3D](./phase-05-wish-sky-3d.md) | Pending | 2, 3 |
+| 4 | [Photo gallery - hành lang 3D](./phase-04-photo-gallery-3d.md) | Completed (user-approved) | 1 |
+| 5 | [Wish sky - đèn lồng](./phase-05-wish-sky-3d.md) | In progress | 2, 3 |
 | 6 | [Performance, QA and handover](./phase-06-performance-qa-and-deploy.md) | Pending | 1-5 |
 
 Phase 2 và 3 độc lập, có thể làm song song sau phase 1 (khác file, khác thư mục).
