@@ -98,7 +98,7 @@ export function coverSize(aspect: number, fovDeg: number, distance: number, imag
 
 /** Ảnh phía sau cổng mờ dần khi camera bay xuyên qua nó lúc khách cuộn. */
 export function photoFade(progress: number): number {
-  return 1 - smoothstep(0.03, 0.1, progress)
+  return 1 - smoothstep(0.02, 0.1, progress)
 }
 
 export interface InstanceCounts {

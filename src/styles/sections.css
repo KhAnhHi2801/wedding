@@ -255,18 +255,68 @@ html[data-journey='3d'] .hero[data-gate='open'] .hero-inner {
   }
 }
 
-/* ---------- sự kiện ---------- */
-.group-title {
-  font-family: var(--font-serif);
-  font-weight: 500;
-  font-size: 1.4rem;
-  margin: var(--space-4) 0 var(--space-2);
-  padding-left: 0.7rem;
-  border-left: 4px solid var(--surface-deep);
+/* ---------- đoạn cuộn vào vườn ---------- */
+.garden-walk {
+  display: none;
 }
 
+/* Chỉ có ý nghĩa khi khu vườn 3D chạy phía sau; khoảng trống này cho camera thời gian đi qua cổng vòm đầu tiên. */
+html[data-journey='3d'] .garden-walk {
+  display: block;
+  height: 80vh;
+  height: 80svh;
+}
+
+/* ---------- sự kiện ---------- */
+.group-title {
+  display: table;
+  margin: var(--space-4) auto var(--space-2);
+  padding: 6px 24px;
+  font-family: var(--font-serif);
+  font-weight: 500;
+  font-size: 1.25rem;
+  color: var(--ink);
+  background: rgba(251, 246, 240, 0.95);
+  border-radius: var(--radius-pill);
+  box-shadow: 0 6px 18px rgba(59, 42, 45, 0.12);
+}
+
+/*
+ * Mọi chữ nằm trên cảnh vườn 3D đều nằm trên một tấm nền kem hình vòm (cùng ngôn ngữ với tấm lời mời trên cổng) và dùng
+ * đúng hai font: serif (Playfair) cho tiêu đề, sans (Be Vietnam Pro) cho thông tin; chữ tối trên nền sáng.
+ */
+.events-head {
+  max-width: 420px;
+  margin: 0 auto var(--space-3);
+  padding: 44px 28px 22px;
+  text-align: center;
+  background: rgba(251, 246, 240, 0.95);
+  border-radius: 160px 160px 20px 20px;
+  box-shadow: 0 10px 30px rgba(59, 42, 45, 0.14);
+}
+
+.events-head .section-title {
+  color: var(--ink);
+}
+
+.events-head .section-sub {
+  margin-bottom: 0;
+  font-size: var(--text-body);
+  color: var(--ink-soft);
+}
+
+/* Thẻ sự kiện hình vòm nổi trên khu vườn 3D: nền trắng gần đặc để chữ luôn đọc rõ trên cảnh. */
 .event-card {
-  margin-bottom: var(--space-2);
+  margin-bottom: var(--space-3);
+  padding: 44px var(--space-3) var(--space-3);
+  border-radius: 140px 140px var(--radius-card) var(--radius-card);
+  background: rgba(255, 255, 255, 0.93);
+  text-align: center;
+  box-shadow: 0 10px 30px rgba(59, 42, 45, 0.12);
+}
+
+.event-card .row {
+  justify-content: center;
 }
 
 .event-title {

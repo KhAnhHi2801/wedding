@@ -14,10 +14,13 @@ export function EventsSection({ side }: EventsSectionProps) {
 
   return (
     <section className="section" id="events" aria-labelledby="events-title">
-      <h2 className="section-title" id="events-title">
-        Thời gian &amp; địa điểm
-      </h2>
-      <p className="section-sub">Chạm “Chỉ đường” để mở Google Maps</p>
+      {/* Tiêu đề nằm trên tấm nền kem để luôn đọc rõ khi phía sau là cảnh vườn 3D. */}
+      <header className="events-head">
+        <h2 className="section-title" id="events-title">
+          Thời gian &amp; địa điểm
+        </h2>
+        <p className="section-sub">Chạm “Chỉ đường” để mở Google Maps</p>
+      </header>
       {visibleSides.map((s) => {
         const events = weddingConfig.events.filter((e) => e.side === s)
         if (events.length === 0) return null

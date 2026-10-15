@@ -31,6 +31,7 @@ import {
 } from '../gate-math'
 import { gate } from '../gate-state'
 import { journeyProgress } from '../journey-progress'
+import { photoState } from '../photo-state'
 import type { QualityTier, TierSettings } from '../quality-tier'
 import type { JourneyFrame, SceneContext, SceneModule } from '../scene-module'
 import { createBloomTexture, createLeafTexture } from './gate-textures'
@@ -353,8 +354,8 @@ export function createGateScene({ heroSrc }: GateSceneOptions): SceneModule {
       flowerGeometry = track(new PlaneGeometry(1, 1))
       const bloom = track(createBloomTexture())
       const leaf = track(createLeafTexture())
-      flowerMaterial = track(new MeshBasicMaterial({ map: bloom, alphaTest: 0.35, side: DoubleSide }))
-      leafMaterial = track(new MeshBasicMaterial({ map: leaf, alphaTest: 0.35, side: DoubleSide }))
+      flowerMaterial = track(new MeshBasicMaterial({ map: bloom, alphaTest: 0.35, alphaToCoverage: true, side: DoubleSide }))
+      leafMaterial = track(new MeshBasicMaterial({ map: leaf, alphaTest: 0.35, alphaToCoverage: true, side: DoubleSide }))
       buildPhoto(context)
 
       // Mở lại trang giữa chừng (đã cuộn xuống): bỏ qua cổng, vào thẳng cảnh sau cổng, ảnh hiện ngay.
@@ -405,6 +406,8 @@ export function createGateScene({ heroSrc }: GateSceneOptions): SceneModule {
         const opacity = photoFade(progress) * reveal
         photoMaterial.opacity = opacity
         photo.visible = photoLoaded && opacity > 0.001
+        // Chưa có ảnh (đang tải, lỗi, không có) thì coi như 0 để cảnh vườn không mất nền.
+        photoState.opacity = photoLoaded ? opacity : 0
       }
     },
     setQuality(_tier: QualityTier, settings: TierSettings) {
@@ -420,6 +423,7 @@ export function createGateScene({ heroSrc }: GateSceneOptions): SceneModule {
       }
       structure.splice(0).forEach((item) => item.dispose())
       disposables.splice(0).forEach((item) => item.dispose())
+      photoState.opacity = 0
       gate.finish()
       ctx = null
       photo = null

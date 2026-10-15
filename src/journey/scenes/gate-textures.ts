@@ -1,12 +1,21 @@
 import { CanvasTexture, SRGBColorSpace } from 'three'
 
-/** Tạo texture từ một canvas 2D vẽ bằng code, để không phải tải thêm ảnh nào. */
+/**
+ * Texture hoa/lá được vẽ ở độ phân giải gấp `RESOLUTION` lần kích thước "thiết kế" (toạ độ vẽ giữ nguyên nhờ ctx.scale).
+ * Gradient trong canvas 2D bị trình duyệt thêm nhiễu dither theo từng pixel; ở độ phân giải thấp, khi camera lại gần và
+ * texture bị phóng to, những hạt nhiễu đó thành các chấm li ti thấy rõ trên mặt lá và cánh hoa. Vẽ ở độ phân giải cao thì
+ * hạt nhỏ hơn nhiều và bị mipmap làm mịn.
+ */
+const RESOLUTION = 4
+
+/** Tạo texture từ một canvas 2D vẽ bằng code, để không phải tải thêm ảnh nào. Kích thước tính theo toạ độ thiết kế. */
 function drawTexture(width: number, height: number, draw: (ctx: CanvasRenderingContext2D) => void): CanvasTexture {
   const canvas = document.createElement('canvas')
-  canvas.width = width
-  canvas.height = height
+  canvas.width = width * RESOLUTION
+  canvas.height = height * RESOLUTION
   const ctx = canvas.getContext('2d')
   if (!ctx) throw new Error('Không tạo được canvas 2D để vẽ texture')
+  ctx.scale(RESOLUTION, RESOLUTION)
   draw(ctx)
   const texture = new CanvasTexture(canvas)
   texture.colorSpace = SRGBColorSpace

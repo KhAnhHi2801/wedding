@@ -1,6 +1,6 @@
 ---
 title: "Phase 3: Scene 2 - Khu vườn và lịch trình"
-status: todo
+status: in-progress
 priority: P1
 effort: "1.25d"
 dependencies: [1]
@@ -44,3 +44,22 @@ Sau cổng là khu vườn buổi sáng dựng bằng Three.js: cỏ, hoa, lá �
 
 - Cỏ/hoa nhiều làm tụt FPS → mật độ theo tier, cắt tỉa theo khoảng cách camera.
 - Chữ khó đọc trên nền cảnh động → thẻ có nền đặc/mờ đủ dày, kiểm ở nhiều vị trí camera.
+
+## Kết quả thực hiện
+
+- Đã làm: `src/journey/scenes/garden-scene.ts` — đồng cỏ (~7000 cọng) và hoa đồng nội đung đưa trong gió bằng vertex shader, hai tường cây hoa dọc lối đi (từ z = -12), ba cổng vòm hoa camera bay xuyên qua, phấn hoa bay, sương mù nền trang đổi theo giờ trong ngày, mặt đất trải tới sát camera (không ghi độ sâu, vẽ trước, mờ theo độ hiện của ảnh hero). Dựng một lần ở mật độ đầy đủ, đổi bậc chất lượng chỉ cắt `mesh.count`/`drawRange`.
+- Vườn chỉ hiện SAU khi cổng mở xong (`gate.getState() === 'open'`), ngừng vẽ khi ảnh hero che kín (`photoState.opacity ≥ 0.999`) hoặc camera đã ra khỏi vườn (progress ≥ 0.62); biên dịch shader sớm ở `init`.
+- Người dùng báo "không thấy vườn đâu": nguyên nhân là vườn chỉ lộ ra trong ~700px cuộn phía sau thẻ lịch trình, camera chưa tới cổng vòm đầu. Sửa: (1) thêm đoạn cuộn `GardenWalk` (khoảng trống không chữ cao 80svh, chỉ có khi 3D chạy; ban đầu có câu "Mời bạn bước vào khu vườn..." nhưng người dùng thấy gượng nên đã bỏ); (2) tiến độ camera neo theo nội dung (`anchoredProgress`): cuộn hết phần lịch trình thì camera vừa đi hết 3 cổng vòm (`GARDEN_END_PROGRESS = 0.52`), phần còn lại chia đều; (3) ảnh hero mờ dần trong khoảng progress 0.02–0.10.
+- Đã sửa theo review: vườn không còn đè lên cổng/ảnh, không vẽ liên tục sau ảnh, mặt đất không làm hỏng crossfade và phấn hoa, sương mù không cấp phát mỗi khung, khóa chương trình shader riêng cho từng kiểu đung đưa, màu tiêu đề nhóm theo token.
+- Thẻ sự kiện hình vòm, nền trắng gần đặc, chữ căn giữa. Logic `?nha=` không đổi.
+- Đã xem trên Chrome: nhìn thấy đồng cỏ có lối đi, tường cây, các cổng vòm xa dần, câu chào và tiêu đề lịch trình.
+- Còn lại: đo FPS trên máy thật (phase 7); phần dưới lịch trình vẫn là phần ảnh tối cũ (phase 4 thay).
+
+### Quy tắc trình bày chữ trên cảnh 3D (từ phản hồi người dùng, áp dụng cho mọi phase sau)
+
+- Chữ nằm trên cảnh 3D luôn nằm trên tấm nền kem hình vòm (`rgba(251,246,240,.95)`, bo đỉnh lớn, đổ bóng nhẹ), chữ tối (`--ink`) trên nền sáng; không đặt chữ trực tiếp lên hoa lá hay cỏ.
+- Chỉ hai font: serif (Playfair) cho tiêu đề và lời mời, sans (Be Vietnam Pro) cho thông tin; không dùng chữ nghiêng/màu lạ.
+- Nút hành động là khối nút rõ ràng (đã có `.btn`); phần hướng dẫn nằm cùng tấm nền với tiêu đề.
+- Cảnh 3D phải thoáng ở vùng giữa: cây/bụi gom thấp sát mặt đất, không rải lá lơ lửng.
+- Đã áp dụng: `.events-head` (tiêu đề + hướng dẫn), `.group-title` (nhãn nhà trai/nhà gái dạng viên thuốc).
+- Giảm "hạt" trên điện thoại (phản hồi người dùng): nhiều hoa/lá nhỏ ở xa thu thành đốm lấm tấm. Đã giảm số lượng (cỏ 7000→4500, hoa đồng nội 500→240, lá/hoa tường cây 1400/800→650/360, phấn hoa 500→120, hoa/lá cổng vòm 130/90→90/60), tăng kích thước phần tử còn lại, phấn hoa to hơn nhưng mờ hơn, sương mù kéo gần (8→44) để chi tiết ở xa tan vào nền. Kiểm bằng khung 390x780 trong Chrome thật. Nếu vẫn còn "hạt" thì hướng tiếp theo: bỏ phấn hoa ở bậc thấp, hạn chế sway ở phần tử xa.

@@ -1,10 +1,30 @@
 import { useEffect } from 'react'
 import { journeyProgress } from '../journey/journey-progress'
-import { scrollProgress, smoothProgress } from '../journey/scroll-progress'
+import { anchoredProgress, scrollProgress, smoothProgress, type ProgressAnchor } from '../journey/scroll-progress'
 import { quantizeTod, todColor, todFromProgress } from '../journey/time-of-day'
 
-const readTarget = () =>
-  scrollProgress(window.scrollY, document.documentElement.scrollHeight, window.innerHeight)
+/** Camera đã đi hết khu vườn (3 cổng vòm hoa) khi khách cuộn qua hết phần lịch trình. */
+const GARDEN_END_PROGRESS = 0.52
+
+/**
+ * Tiến độ hành trình tại vị trí cuộn hiện tại. Neo theo nội dung: hết phần lịch trình thì camera vừa đi hết khu vườn,
+ * phần còn lại của trang chia đều tới cuối. Khi chưa có phần lịch trình trên màn hình (trang đang khóa chờ cổng mở, hoặc
+ * không có) thì chia đều theo chiều dài cả trang.
+ */
+function readTarget(): number {
+  const scrollable = document.documentElement.scrollHeight - window.innerHeight
+  const linear = scrollProgress(window.scrollY, document.documentElement.scrollHeight, window.innerHeight)
+  const events = document.getElementById('events')
+  if (!events || events.offsetParent === null || scrollable <= 0) return linear
+  const gardenEnd = events.getBoundingClientRect().bottom + window.scrollY - window.innerHeight
+  if (gardenEnd <= 0 || gardenEnd >= scrollable) return linear
+  const anchors: ProgressAnchor[] = [
+    { y: 0, progress: 0 },
+    { y: gardenEnd, progress: GARDEN_END_PROGRESS },
+    { y: scrollable, progress: 1 },
+  ]
+  return anchoredProgress(window.scrollY, anchors)
+}
 
 /**
  * Theo dõi cuộn trang và ghi "thời gian trong ngày" ra CSS (`--tod`, `--journey-bg`) cùng

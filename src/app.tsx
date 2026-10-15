@@ -8,6 +8,7 @@ import { JourneyCanvas } from './journey/journey-canvas'
 import { prefersReducedMotion } from './lib/motion-preference'
 import { parseInvite } from './lib/url-params'
 import { EventsSection } from './sections/events-section'
+import { GardenWalk } from './sections/garden-walk'
 import { GiftSection } from './sections/gift-section'
 import { HeroSection } from './sections/hero-section'
 import { PhotosSection } from './sections/photos-section'
@@ -30,6 +31,7 @@ export default function App({ search }: AppProps) {
       <JourneyCanvas calm={calm} heroSrc={heroPhoto?.src ?? null} />
       <HeroSection guestName={invite.guestName} />
       <main>
+        <GardenWalk />
         <EventsSection side={invite.side} />
         <PhotosSection />
         <WishesSection />

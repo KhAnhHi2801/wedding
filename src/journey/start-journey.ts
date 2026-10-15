@@ -1,6 +1,7 @@
 import { createJourneyEngine } from './journey-engine'
 import { journeyProgress } from './journey-progress'
 import { pickInitialTier, type QualityTier } from './quality-tier'
+import { createGardenScene } from './scenes/garden-scene'
 import { createGateScene } from './scenes/gate-scene'
 
 export interface StartJourneyOptions {
@@ -29,7 +30,7 @@ export function startJourney({ canvas, onFail, onTierChange, heroSrc = null, onR
   const nav = navigator as Navigator & { deviceMemory?: number }
   const engine = createJourneyEngine({
     canvas,
-    modules: [createGateScene({ heroSrc })],
+    modules: [createGateScene({ heroSrc }), createGardenScene()],
     tier: pickInitialTier({
       coarse: isCoarse(),
       hardwareConcurrency: nav.hardwareConcurrency,
