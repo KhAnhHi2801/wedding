@@ -1,4 +1,7 @@
 import {
+  AmbientLight,
+  BoxGeometry,
+  DirectionalLight,
   CylinderGeometry,
   Color,
   DoubleSide,
@@ -6,6 +9,7 @@ import {
   InstancedMesh,
   Mesh,
   MeshBasicMaterial,
+  MeshLambertMaterial,
   Object3D,
   PlaneGeometry,
   Shape,
@@ -79,32 +83,35 @@ interface Part {
 
 const dummy = new Object3D()
 
-/** Điểm rải hoa/lá quanh khung cổng: dải dọc cung phía trên và hai trụ. */
+/**
+ * Điểm rải hoa/lá quanh khung cổng: dồn thành cụm lớn ở đỉnh vòm, hai cụm thấp ở chân trụ, và thưa dọc phần còn lại.
+ * Phần thân trụ và vòm để trống cho khung và cánh sắt đọc ra, chiều sâu cổng không bị tấm thảm hoa che mất.
+ */
 function sampleFrame(random: () => number, { radius: R, post: H }: GateDims): Sample {
-  const ringShare = (Math.PI * R) / (Math.PI * R + 2 * H)
-  const offset = -0.2 + random() * 0.65
-  const z = (random() - 0.5) * 0.6
-  // Một phần hoa dồn thành cụm ở đỉnh vòm cho cổng có điểm nhấn và đọc ra hình vòm.
-  if (random() < 0.12) {
-    const angle = Math.PI / 2 + (random() - 0.5) * 0.7
-    const r = R + 0.1 + random() * 0.35
-    return { x: Math.cos(angle) * r, y: H + Math.sin(angle) * r, z: 0.15 + random() * 0.3 }
-  }
-  if (random() < ringShare) {
-    const angle = random() * Math.PI
+  const offset = -0.08 + random() * 0.3
+  const z = (random() - 0.5) * 0.5
+  const pick = random()
+  if (pick < 0.4) {
+    const angle = Math.PI / 2 + (random() - 0.5) * 1.9
     const r = R + offset
-    return { x: Math.cos(angle) * r, y: H + Math.sin(angle) * r, z }
+    return { x: Math.cos(angle) * r, y: H + Math.sin(angle) * r, z: z + 0.1 }
+  }
+  if (pick < 0.7) {
+    const side = random() < 0.5 ? -1 : 1
+    return { x: side * (R + offset), y: random() * H * 0.34, z }
+  }
+  if (random() < 0.5) {
+    const angle = random() * Math.PI
+    return { x: Math.cos(angle) * (R + offset), y: H + Math.sin(angle) * (R + offset), z }
   }
   const side = random() < 0.5 ? -1 : 1
   return { x: side * (R + offset), y: random() * H, z }
 }
 
-/** Điểm rải trên một cánh cổng, theo toạ độ riêng của cánh (gốc ở bản lề, x hướng vào giữa cổng). */
+/** Điểm rải trên một cánh cổng (toạ độ riêng của cánh): chỉ vài cành hoa thấp sát chân cánh. */
 function sampleDoor(random: () => number, side: -1 | 1, { radius: R, post: H }: GateDims): Sample {
   const toCenter = random() * R
-  const worldX = side * (R - toCenter)
-  const top = H + Math.sqrt(Math.max(0, R * R - worldX * worldX))
-  return { x: -side * toCenter, y: random() * top, z: (random() - 0.5) * 0.2 }
+  return { x: -side * toCenter, y: random() * H * 0.16, z: (random() - 0.5) * 0.2 }
 }
 
 function makeLayout(
@@ -126,7 +133,7 @@ function makeLayout(
     const point = sampler(random)
     layout.position.set([point.x, point.y, point.z], i * 3)
     layout.rotation.set([(random() - 0.5) * 0.8, (random() - 0.5) * 0.8, random() * Math.PI * 2], i * 3)
-    layout.size[i] = (leaf ? 0.45 + random() * 0.3 : 0.34 + random() * 0.34) * sizeFactor
+    layout.size[i] = (leaf ? 0.36 + random() * 0.2 : 0.3 + random() * 0.25) * sizeFactor
     layout.delay[i] = random() * maxDelay
   }
   return layout
@@ -171,6 +178,7 @@ export function createGateScene({ heroSrc }: GateSceneOptions): SceneModule {
   const frameGroup = new Group()
   const doorLeft = new Group()
   const doorRight = new Group()
+  const lights = new Group()
   root.add(frameGroup, doorLeft, doorRight)
 
   /** Tài nguyên dùng suốt vòng đời cảnh (texture, vật liệu hoa/lá, ảnh) và tài nguyên của khung/cánh (dựng lại khi đổi cỡ). */
@@ -245,25 +253,46 @@ export function createGateScene({ heroSrc }: GateSceneOptions): SceneModule {
       if (!(child instanceof InstancedMesh)) child.parent?.remove(child)
     })
 
-    const cream = track(new MeshBasicMaterial({ color: '#efe8da' }), structure)
-    const sage = track(new MeshBasicMaterial({ color: '#dde7d3', side: DoubleSide }), structure)
-    const arc = new Mesh(track(new TorusGeometry(R + 0.1, 0.1, 8, 40, Math.PI), structure), cream)
-    arc.position.y = H
-    const postGeometry = track(new CylinderGeometry(0.1, 0.12, H, 10), structure)
-    const postLeft = new Mesh(postGeometry, cream)
-    postLeft.position.set(-(R + 0.1), H / 2, 0)
-    const postRight = new Mesh(postGeometry, cream)
-    postRight.position.set(R + 0.1, H / 2, 0)
-    frameGroup.add(arc, postLeft, postRight)
+    const cream = track(new MeshLambertMaterial({ color: '#efe6d2' }), structure)
+    const shade = track(new MeshLambertMaterial({ color: '#cdbd98' }), structure)
+    const mist = track(new MeshBasicMaterial({ color: '#e4ecdb', side: DoubleSide, transparent: true, opacity: 0.78, depthWrite: false }), structure)
 
+    // Khung dày: vòm và trụ chính, thêm lớp viền tối hơn lùi ra sau để có chiều sâu khi cổng nghiêng nhẹ.
+    const arc = new Mesh(track(new TorusGeometry(R + 0.12, 0.13, 10, 48, Math.PI), structure), cream)
+    arc.position.y = H
+    const arcBack = new Mesh(track(new TorusGeometry(R + 0.12, 0.16, 10, 48, Math.PI), structure), shade)
+    arcBack.position.set(0, H, -0.22)
+    const postGeometry = track(new CylinderGeometry(0.13, 0.15, H, 12), structure)
+    const postBackGeometry = track(new CylinderGeometry(0.16, 0.18, H, 12), structure)
+    const plinthGeometry = track(new BoxGeometry(0.62, 0.34, 0.62), structure)
+    ;([-1, 1] as const).forEach((side) => {
+      const x = side * (R + 0.12)
+      const post = new Mesh(postGeometry, cream)
+      post.position.set(x, H / 2, 0)
+      const postBack = new Mesh(postBackGeometry, shade)
+      postBack.position.set(x, H / 2, -0.22)
+      const plinth = new Mesh(plinthGeometry, cream)
+      plinth.position.set(x, 0.17, -0.1)
+      frameGroup.add(post, postBack, plinth)
+    })
+    frameGroup.add(arc, arcBack)
+
+    // Mỗi cánh: nền sương mờ và thanh giữa dày; tên cô dâu chú rể và dấu & (khoá cổng) là HTML phủ lên.
     const backing = track(createDoorBackingGeometry(d), structure)
-    const backingLeft = new Mesh(backing, sage)
-    backingLeft.position.z = -0.04
-    const backingRight = new Mesh(backing, sage)
-    backingRight.position.z = -0.04
-    backingRight.scale.x = -1
-    doorLeft.add(backingLeft)
-    doorRight.add(backingRight)
+    const makeDoor = (door: Group, mirror: boolean) => {
+      const wrap = new Group()
+      if (mirror) wrap.scale.x = -1
+      const back = new Mesh(backing, mist)
+      back.position.z = -0.04
+      wrap.add(back)
+      const seamHeight = H + R
+      const seam = new Mesh(track(new CylinderGeometry(0.05, 0.05, seamHeight, 8), structure), cream)
+      seam.position.set(R, seamHeight / 2, 0.03)
+      wrap.add(seam)
+      door.add(wrap)
+    }
+    makeDoor(doorLeft, false)
+    makeDoor(doorRight, true)
   }
 
   /** Tính lại kích thước cổng theo tỉ lệ màn hình; chỉ dựng lại khi kích thước thật sự đổi. */
@@ -331,6 +360,7 @@ export function createGateScene({ heroSrc }: GateSceneOptions): SceneModule {
     gateGone = true
     introDone = true
     root.visible = false
+    lights.parent?.remove(lights)
     // Cổng không bao giờ hiện lại: nhả bộ nhớ của hàng nghìn instance ngay.
     disposeParts()
     gate.finish()
@@ -351,6 +381,11 @@ export function createGateScene({ heroSrc }: GateSceneOptions): SceneModule {
       ctx = context
       settingsRef = context.settings
       context.scene.add(root)
+      // Ánh sáng chỉ để khung, thanh sắt và núm vàng có khối. Nằm ngoài root để khi cổng lắc, bóng đổ đổi theo; gỡ cùng cổng.
+      const sun = new DirectionalLight('#fff3dc', 1.0)
+      sun.position.set(-3, 5, 6)
+      lights.add(new AmbientLight('#fff8ee', 2.3), sun)
+      context.scene.add(lights)
       // Hoa lá là hình học tô màu theo đỉnh (không texture, không cắt alpha): mép khử răng cưa chuẩn, vẽ nhẹ trên điện thoại.
       flowerGeometry = track(createFlowerGeometry())
       leafGeometry = track(createLeafGeometry())
@@ -382,6 +417,10 @@ export function createGateScene({ heroSrc }: GateSceneOptions): SceneModule {
       }
 
       if (!gateGone) {
+        // Cổng lắc nhẹ quanh trục đứng lúc chờ để các lớp khung, cánh, trụ lệch nhau và hiện chiều sâu; tắt dần khi mở.
+        const calm = 1 - Math.min(1, openElapsed / 0.5)
+        root.rotation.y = Math.sin(elapsed * 0.7) * 0.16 * calm
+        root.rotation.x = Math.sin(elapsed * 0.5 + 1) * 0.03 * calm
         if (gate.getState() === 'closed' && (elapsed >= AUTO_OPEN_SECONDS || progress > SCROLL_OPENS_AT)) gate.requestOpen()
 
         const state = gate.getState()
@@ -418,6 +457,7 @@ export function createGateScene({ heroSrc }: GateSceneOptions): SceneModule {
       disposeParts()
       if (ctx) {
         ctx.scene.remove(root)
+        ctx.scene.remove(lights)
         if (photo) ctx.scene.remove(photo)
       }
       structure.splice(0).forEach((item) => item.dispose())

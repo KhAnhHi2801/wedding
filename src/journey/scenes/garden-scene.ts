@@ -71,8 +71,8 @@ const BASE_COUNTS = {
 const ARCH_Z = [-10, -18, -26, -34, -42, -50]
 const ARCH_RADIUS = 2.3
 const ARCH_POST = 2.0
-const ARCH_FLOWERS = 70
-const ARCH_LEAVES = 46
+const ARCH_FLOWERS = 170
+const ARCH_LEAVES = 100
 
 const BLOOM_TINTS = ['#ffffff', '#ffffff', '#fbf3e4', '#f9dede', '#e3d9f4'].map((hex) => new Color(hex))
 const LEAF_TINTS = ['#ffffff', '#e8f5e4', '#d6ebd2', '#f3fbe9'].map((hex) => new Color(hex))
@@ -384,8 +384,12 @@ export function createGardenScene(): SceneModule {
       const z = ARCH_Z[i % ARCH_Z.length]
       const cx = pathX(z)
       const ringShare = (Math.PI * ARCH_RADIUS) / (Math.PI * ARCH_RADIUS + 2 * ARCH_POST)
-      const offset = -0.12 + random() * 0.4
-      if (random() < ringShare) {
+      const offset = -0.1 + random() * 0.4
+      if (random() < 0.12) {
+        const angle = Math.PI / 2 + (random() - 0.5) * 0.7
+        const r = ARCH_RADIUS + 0.1 + random() * 0.3
+        dummy.position.set(cx + Math.cos(angle) * r, ARCH_POST + Math.sin(angle) * r, z + 0.1 + random() * 0.3)
+      } else if (random() < ringShare) {
         const angle = random() * Math.PI
         const r = ARCH_RADIUS + offset
         dummy.position.set(cx + Math.cos(angle) * r, ARCH_POST + Math.sin(angle) * r, z + (random() - 0.5) * 0.5)
@@ -394,7 +398,7 @@ export function createGardenScene(): SceneModule {
         dummy.position.set(cx + side * (ARCH_RADIUS + offset), random() * ARCH_POST, z + (random() - 0.5) * 0.5)
       }
       dummy.rotation.set((random() - 0.5) * 0.6, (random() - 0.5) * 0.6, random() * Math.PI * 2)
-      const size = leaf ? 0.55 + random() * 0.3 : 0.4 + random() * 0.25
+      const size = leaf ? 0.6 + random() * 0.3 : 0.5 + random() * 0.3
       dummy.scale.set(leaf ? size * 0.5 : size, size, 1)
     }
     const archLeaves = new InstancedMesh(geometry.leaf, materials.archLeaf, ARCH_Z.length * ARCH_LEAVES)

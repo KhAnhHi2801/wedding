@@ -81,8 +81,8 @@ export function gateDims(aspect: number, fovDeg: number, distance: number): Gate
   const post = Math.max(0.6, height - radius)
   const area = 2 * radius * post + (Math.PI * radius * radius) / 2
   const raw = area / REFERENCE_AREA
-  const countFactor = Math.min(2.4, Math.max(0.8, raw))
-  return { radius, post, height: post + radius, countFactor, sizeFactor: Math.sqrt(Math.max(1, raw / countFactor)) }
+  const countFactor = Math.min(1.6, Math.max(0.8, raw))
+  return { radius, post, height: post + radius, countFactor, sizeFactor: Math.min(1.15, Math.sqrt(Math.max(1, raw / countFactor))) }
 }
 
 /**
@@ -111,7 +111,7 @@ export interface InstanceCounts {
 /** Ảnh hiện dần trong ngần này giây sau khi cổng đã mở xong (cùng nhịp với chữ hiện lại ở hero). */
 export const PHOTO_REVEAL_SECONDS = 0.9
 
-const BASE_COUNTS: InstanceCounts = { frameFlowers: 380, frameLeaves: 200, doorFlowers: 250, doorLeaves: 120 }
+const BASE_COUNTS: InstanceCounts = { frameFlowers: 460, frameLeaves: 240, doorFlowers: 110, doorLeaves: 60 }
 
 /** Số hoa/lá theo mật độ của bậc chất lượng (1 = đủ) và độ lớn của cổng; luôn đủ để cổng không trơ trụi. */
 export function instanceCounts(density: number, countFactor = 1): InstanceCounts {

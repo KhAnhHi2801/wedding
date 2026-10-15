@@ -146,16 +146,17 @@ html[data-journey='3d'] .hero-scrim {
 }
 
 .hero:is([data-gate='loading'], [data-gate='closed'], [data-gate='opening']) .hero-inner {
-  /* Tấm bảng nhỏ treo giữa cổng: chừa hoa và cánh cổng 3D lộ ra xung quanh. */
-  width: min(76vw, 310px);
-  margin: 0 auto calc(var(--action-bar-h) + env(safe-area-inset-bottom) + 12vh);
-  /* Đệm trên và hai bên đủ lớn để dòng lời mời nằm trong phần rộng của vòm, không chạm đường bo. */
-  padding: 64px 34px 28px;
-  border-radius: 150px 150px 20px 20px;
-  background: rgba(251, 246, 240, 0.93);
-  box-shadow: 0 12px 40px rgba(59, 42, 45, 0.25);
+  /* Chữ viết thẳng lên hai cánh cổng (nền xanh nhạt, chữ ink), không có tấm nền; hoa chỉ ở chân và đỉnh cánh nên không đè chữ. */
+  width: min(76vw, 340px);
+  margin: 0 auto calc(var(--action-bar-h) + env(safe-area-inset-bottom) + 10vh);
+  padding: 0;
   color: var(--ink);
   transition: opacity 0.35s ease;
+}
+
+.hero:is([data-gate='loading'], [data-gate='closed'], [data-gate='opening']) .petal-field {
+  /* Cánh hoa HTML rơi đè lên chữ viết thẳng trên cánh cổng; cổng 3D đã có hoa của nó. */
+  display: none;
 }
 
 .hero[data-gate='opening'] :is(.hero-inner, .hero-open) {
@@ -163,21 +164,55 @@ html[data-journey='3d'] .hero-scrim {
   pointer-events: none;
 }
 
+/* Lời mời đã có ở hero sau khi cổng mở, nên trên cổng chỉ để tên cô dâu chú rể. */
 .hero:is([data-gate='loading'], [data-gate='closed'], [data-gate='opening']) .hero-invite {
-  font-size: 0.95rem;
-  letter-spacing: 0;
-  text-shadow: none;
+  display: none;
 }
 
 .hero:is([data-gate='loading'], [data-gate='closed'], [data-gate='opening']) .hero-names {
-  font-size: clamp(1.9rem, 8.5vw, 2.5rem);
+  font-size: clamp(1.7rem, 7.6vw, 2.4rem);
   margin-bottom: 0;
   text-shadow: none;
 }
 
 /* Ngày tháng và nút xem lịch trình chỉ hiện khi cổng đã mở. */
-.hero:is([data-gate='loading'], [data-gate='closed'], [data-gate='opening']) :is(.hero-date, .hero-cta) {
+.hero:is([data-gate='loading'], [data-gate='closed'], [data-gate='opening']) .hero-cta {
   display: none;
+}
+
+.hero:is([data-gate='loading'], [data-gate='closed'], [data-gate='opening']) .hero-date {
+  display: none;
+}
+
+/*
+ * Trên cổng: tên cô dâu ở cánh trái, tên chú rể ở cánh phải, dấu & là khoá cổng ở giữa. Mỗi tên tự xuống dòng theo từng
+ * chữ (min-content) để vừa bề rộng một cánh thay vì dàn ra.
+ */
+.hero:is([data-gate='loading'], [data-gate='closed'], [data-gate='opening']) .hero-names {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  column-gap: 0;
+}
+
+.hero:is([data-gate='loading'], [data-gate='closed'], [data-gate='opening']) .hero-name {
+  width: min-content;
+  margin: 0 auto;
+  line-height: 1.15;
+}
+
+.hero:is([data-gate='loading'], [data-gate='closed'], [data-gate='opening']) .hero-amp {
+  display: grid;
+  place-items: center;
+  width: 2.4rem;
+  height: 2.4rem;
+  margin: 0;
+  border-radius: 50%;
+  background: #f6efdf;
+  border: 2px solid #d9b96c;
+  box-shadow: 0 2px 8px rgba(59, 42, 45, 0.25);
+  font-size: 1.25rem;
+  line-height: 1;
 }
 
 /* Nút mở thiệp nằm dưới cổng, ngay trên thanh hành động; chưa có cổng (loading) thì chưa có nút. */
@@ -188,7 +223,17 @@ html[data-journey='3d'] .hero-scrim {
   transform: translateX(-50%);
   display: inline-flex;
   transition: opacity 0.35s ease;
-  box-shadow: 0 6px 20px rgba(59, 42, 45, 0.3);
+  /* Nút viền mảnh, nhỏ hơn tên cô dâu chú rể nhưng vùng chạm vẫn >= 44px. */
+  min-height: 44px;
+  padding: 0 28px;
+  font-size: 0.9rem;
+  letter-spacing: 0.06em;
+  background: rgba(251, 246, 240, 0.7);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  color: var(--ink);
+  border: 1px solid rgba(59, 42, 45, 0.55);
+  box-shadow: none;
 }
 
 /* Điện thoại nằm ngang (rất thấp): thu nhỏ tấm bảng và hạ nút để không đè lên nhau. */
@@ -196,7 +241,6 @@ html[data-journey='3d'] .hero-scrim {
   .hero:is([data-gate='loading'], [data-gate='closed'], [data-gate='opening']) .hero-inner {
     width: min(50vw, 300px);
     margin-bottom: calc(var(--action-bar-h) + env(safe-area-inset-bottom) + 56px);
-    padding: 40px 28px 14px;
   }
 
   .hero:is([data-gate='loading'], [data-gate='closed'], [data-gate='opening']) .hero-names {
