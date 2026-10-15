@@ -14,7 +14,8 @@ const INVISIBLE_CHARS = /[\p{Cc}\p{Cf}]/gu
 
 function sanitizeGuestName(raw: string): string | null {
   // NFC trước khi cắt để dấu thanh tiếng Việt dạng tổ hợp không bị tách khỏi chữ cái.
-  const collapsed = raw.normalize('NFC').replace(INVISIBLE_CHARS, '').replace(/\s+/g, ' ').trim()
+  // Gộp khoảng trắng (gồm xuống dòng) trước khi xóa ký tự vô hình, để "A\nB" thành "A B" chứ không dính "AB".
+  const collapsed = raw.normalize('NFC').replace(/\s+/g, ' ').replace(INVISIBLE_CHARS, '').trim()
   // Array.from đếm theo ký tự, không cắt đôi cặp surrogate.
   const clipped = Array.from(collapsed).slice(0, MAX_GUEST_NAME_LENGTH).join('').trim()
   return clipped || null

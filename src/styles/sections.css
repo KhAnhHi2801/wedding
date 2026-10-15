@@ -164,7 +164,7 @@
 .section-sky {
   max-width: none;
   color: #fff;
-  background: linear-gradient(180deg, var(--surface) 0, var(--sky-top) 110px, var(--sky-bottom) 100%);
+  background: linear-gradient(180deg, var(--surface) 0, var(--sky-top) 80px, var(--sky-bottom) 100%);
   padding-top: calc(var(--space-5) + 40px);
 }
 
@@ -173,7 +173,7 @@
 }
 
 .section-sky .section-sub {
-  color: #f6e6e8;
+  color: #fff;
 }
 
 .placeholder-box {
@@ -296,4 +296,223 @@
 /* Gạch chéo khi nhạc đang tắt, thay cho ký tự tổ hợp hiển thị không đồng nhất. */
 .music-toggle[aria-pressed='false'] span {
   text-decoration: line-through;
+}
+
+/* ---------- lời chúc ---------- */
+.btn-on-sky {
+  background: #fff;
+  color: var(--accent-strong);
+}
+
+.btn:disabled {
+  opacity: 0.7;
+  cursor: progress;
+}
+
+.wish-cta {
+  display: flex;
+  justify-content: center;
+  margin-bottom: var(--space-3);
+}
+
+.wish-notice {
+  min-height: 1.55em;
+  margin-bottom: var(--space-2);
+  text-align: center;
+  color: #fff;
+}
+
+.wish-list {
+  list-style: none;
+  margin: 0 auto;
+  padding: 0;
+  max-width: 520px;
+  display: grid;
+  gap: var(--space-2);
+}
+
+.wish-item {
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-card);
+  background: rgba(255, 255, 255, 0.96);
+  color: var(--ink);
+}
+
+.wish-name {
+  font-weight: 600;
+  color: var(--accent-strong);
+}
+
+.wish-message {
+  overflow-wrap: anywhere;
+}
+
+.wish-state {
+  text-align: center;
+  color: #fff;
+}
+
+.wish-state .btn {
+  margin-top: var(--space-2);
+}
+
+.wish-more {
+  margin-top: var(--space-3);
+  text-align: center;
+  color: #fff;
+}
+
+.wish-more .btn {
+  margin-top: var(--space-1);
+}
+
+.skeleton-line {
+  display: block;
+  height: 1em;
+  border-radius: 6px;
+  background: linear-gradient(90deg, #f1e3e0 25%, #fbf1ee 50%, #f1e3e0 75%);
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.4s linear infinite;
+}
+
+.skeleton-line.short {
+  width: 35%;
+  margin-bottom: 0.5rem;
+}
+
+@keyframes skeleton-shimmer {
+  to {
+    background-position: -200% 0;
+  }
+}
+
+/* ---------- bottom sheet gửi lời chúc ---------- */
+.wish-sheet {
+  position: fixed;
+  /* `bottom` và `max-height` được chỉnh theo bàn phím ảo ở thuộc tính style. */
+  inset: auto 0 0 0;
+  margin: 0 auto;
+  width: 100%;
+  max-width: 560px;
+  max-height: 90vh;
+  max-height: 90dvh;
+  padding: 0;
+  border: 0;
+  border-radius: 18px 18px 0 0;
+  background: #fff;
+  color: var(--ink);
+  overflow-y: auto;
+}
+
+.wish-sheet::backdrop {
+  background: rgba(59, 42, 45, 0.55);
+}
+
+.wish-sheet[open] {
+  animation: sheet-up 0.25s ease-out;
+}
+
+@keyframes sheet-up {
+  from {
+    transform: translateY(24px);
+    opacity: 0;
+  }
+}
+
+.wish-form {
+  padding: var(--space-2) max(20px, env(safe-area-inset-right))
+    calc(var(--space-3) + env(safe-area-inset-bottom)) max(20px, env(safe-area-inset-left));
+}
+
+.sheet-handle {
+  width: 40px;
+  height: 4px;
+  margin: 0 auto var(--space-2);
+  border-radius: 2px;
+  background: var(--surface-deep);
+}
+
+.wish-form-title {
+  font-family: var(--font-serif);
+  font-weight: 500;
+  font-size: 1.4rem;
+  color: var(--accent-strong);
+  margin-bottom: var(--space-2);
+}
+
+.field {
+  display: block;
+  margin-bottom: var(--space-2);
+}
+
+.field > span:first-child {
+  display: block;
+  margin-bottom: 0.25rem;
+  font-weight: 500;
+}
+
+.field input,
+.field textarea {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1.5px solid var(--accent); /* >= 3:1 với nền (viền ô nhập là thành phần giao diện) */
+  border-radius: 10px;
+  background: var(--bg);
+  color: var(--ink);
+  /* >= 16px để iOS không tự phóng to trang khi ô nhập nhận focus. */
+  font: var(--text-body) / 1.5 var(--font-sans);
+}
+
+.field textarea {
+  resize: vertical;
+}
+
+.field-counter {
+  display: block;
+  text-align: right;
+  font-size: 0.875rem;
+  color: var(--ink-soft);
+}
+
+.field-counter.over {
+  color: #a3262f;
+  font-weight: 600;
+}
+
+.wish-stale {
+  margin: 0 auto var(--space-2);
+  max-width: 520px;
+  text-align: center;
+  color: #fff;
+}
+
+.link-button {
+  padding: 0.5rem;
+  border: 0;
+  background: none;
+  color: #fff;
+  font: inherit;
+  font-weight: 600;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.hp-field {
+  position: absolute;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+
+.form-error {
+  margin-bottom: var(--space-2);
+  color: #a3262f;
+  font-weight: 500;
+}
+
+.form-actions {
+  display: flex;
+  gap: var(--space-1);
+  justify-content: flex-end;
 }

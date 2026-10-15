@@ -5,6 +5,7 @@ import { weddingConfig } from '../config/wedding-config'
 import { EventsSection } from './events-section'
 import { GiftSection } from './gift-section'
 import { HeroSection } from './hero-section'
+import { WishesSection } from './wishes-section'
 
 describe('EventsSection', () => {
   it('shows both sides when no side is chosen', () => {
@@ -48,6 +49,26 @@ describe('GiftSection', () => {
   it('does not use "quét mã" or "chuyển khoản" wording', () => {
     const html = renderToStaticMarkup(<GiftSection />)
     expect(html).not.toMatch(/quét mã|chuyển khoản/i)
+  })
+})
+
+describe('WishesSection', () => {
+  it('opens in a loading state with a skeleton and a send button', () => {
+    const html = renderToStaticMarkup(<WishesSection />)
+    expect(html).toContain('id="wishes"')
+    expect(html).toContain('Đang tải lời chúc')
+    expect(html).toContain('Gửi lời chúc')
+  })
+
+  it('renders the form as a closed dialog with a hidden honeypot and length limits', () => {
+    const html = renderToStaticMarkup(<WishesSection />)
+    expect(html).toContain('<dialog')
+    expect(html).not.toMatch(/<dialog[^>]*\sopen/)
+    expect(html).toMatch(/name="website"[^>]*aria-hidden="true"|aria-hidden="true"[^>]*name="website"/)
+    expect(html).toContain('maxLength="40"')
+    // Ô lời chúc không dùng maxLength (đếm UTF-16 làm emoji bị cắt sớm); giới hạn do bộ đếm và kiểm tra bảo đảm.
+    expect(html).not.toContain('maxLength="300"')
+    expect(html).toContain('0/300')
   })
 })
 

@@ -21,7 +21,7 @@
   --card: #ffffff;
 
   --sky-top: #7a4a63;
-  --sky-bottom: #c98b8b;
+  --sky-bottom: #94606e; /* đủ tối để chữ trắng đạt AA (~5:1) ở mọi điểm của vùng nền lời chúc */
 
   --font-serif: 'Playfair Display', Georgia, 'Noto Serif', serif;
   --font-sans: 'Be Vietnam Pro', system-ui, -apple-system, 'Segoe UI', sans-serif;

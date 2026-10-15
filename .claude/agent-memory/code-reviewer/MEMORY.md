@@ -1,0 +1,1 @@
+- [Review env constraints](reference_review_env.md) — hook blocks paths with build/dist; how to build/test read-only; GAS fakes' blind spots

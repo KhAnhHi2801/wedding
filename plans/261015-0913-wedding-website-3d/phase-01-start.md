@@ -87,8 +87,8 @@ Mockup nhanh rồi khởi tạo Vite + React + TS, design tokens theo palette, f
 - [x] `?nha=trai`, `?nha=gai`, `?nha=xyz`, không tham số đều render đúng nhóm sự kiện
 - [x] `?khach=Anh%20Minh` hiện tên; `?khach=<script>` hiện như chữ; tên dài bị cắt gọn
 - [x] Từ màn hình đầu, ≤1 chạm tới giờ/địa điểm/chỉ đường (thanh hành động)
-- [ ] Chép số tài khoản (cô dâu và chú rể) hoạt động trên Chrome, Safari iOS (in-app kiểm tra ở phase 6)
-- [ ] Chữ ≥16px (giờ/địa chỉ ≥18px), vùng chạm ≥44px, Lighthouse accessibility ≥ 90
+- [ ] Chép số tài khoản (cô dâu và chú rể) hoạt động trên Chrome, Safari iOS (chuyển sang kiểm tra trên thiết bị thật ở phase 6)
+- [ ] Chữ ≥16px (giờ/địa chỉ ≥18px), vùng chạm ≥44px đã có trong CSS; Lighthouse accessibility ≥ 90 đo ở phase 6
 - [x] Ảnh hero ≤ ~150KB; không có R3F trong bundle ban đầu
 - [x] Mọi asset nằm trong `public/assets/`, khai báo trong config; thay một file cùng tên → trang hiển thị file mới, không sửa code
 - [x] "Gửi yêu thương" hiện đủ 2 thẻ (cô dâu, chú rể) với mọi giá trị `?nha`; lời dẫn không dùng chữ "quét mã/chuyển khoản" làm tiêu đề

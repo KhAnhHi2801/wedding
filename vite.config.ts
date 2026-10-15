@@ -44,5 +44,5 @@ export default defineConfig({
   // Cổng cố định cho dự án này; báo lỗi thay vì tự nhảy sang cổng khác.
   server: { port: 5180, strictPort: true },
   preview: { port: 5180, strictPort: true },
-  test: { include: ['src/**/*.test.{ts,tsx}'] },
+  test: { include: ['src/**/*.test.{ts,tsx}', 'apps-script/**/*.test.ts'] },
 })
