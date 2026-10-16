@@ -115,8 +115,11 @@ a {
 }
 
 .card {
-  background: var(--card);
-  border: 1px solid var(--surface);
+  background: var(--glass);
+  -webkit-backdrop-filter: blur(14px) saturate(1.2);
+  backdrop-filter: blur(14px) saturate(1.2);
+  box-shadow: var(--shadow-soft);
+  border: 1px solid var(--glass-border);
   border-radius: var(--radius-card);
   padding: var(--space-3);
 }

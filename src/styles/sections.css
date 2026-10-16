@@ -9,10 +9,11 @@
 
 .section-title {
   font-family: var(--font-serif);
-  font-weight: 500;
-  font-size: 1.75rem;
-  line-height: 1.2;
-  color: var(--accent-strong);
+  font-weight: 600;
+  font-size: 2.25rem; /* Cormorant có x-height thấp: lớn hơn serif cũ để cùng độ đọc */
+  line-height: 1.15;
+  letter-spacing: 0.01em;
+  color: var(--ink);
   text-align: center;
   margin-bottom: 0.4rem;
 }
@@ -21,6 +22,15 @@
   text-align: center;
   color: var(--ink-soft);
   margin-bottom: var(--space-4);
+}
+
+.section-title::after {
+  content: '';
+  display: block;
+  width: 48px;
+  height: 1px;
+  margin: 0.6rem auto 0;
+  background: var(--champagne);
 }
 
 .hint {
@@ -89,7 +99,7 @@
 .hero-names {
   font-family: var(--font-serif);
   font-weight: 500;
-  font-size: clamp(2.4rem, 12vw, 3.4rem);
+  font-size: clamp(3rem, 13vw, 4.4rem);
   line-height: 1.1;
   margin-bottom: 0.5rem;
   text-shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
@@ -208,7 +218,7 @@ html[data-journey='3d'] .hero-scrim {
  */
 .hero:is([data-gate='loading'], [data-gate='closed'], [data-gate='opening']) .hero-names {
   margin: 0;
-  font-size: clamp(20px, 5.4vw, 38px);
+  font-size: clamp(26px, 6.4vw, 56px);
   line-height: 1.2;
   text-shadow: none;
 }
@@ -431,8 +441,8 @@ html[data-journey='3d'] .garden-walk {
   margin: var(--space-4) auto var(--space-2);
   padding: 6px 24px;
   font-family: var(--font-serif);
-  font-weight: 500;
-  font-size: 1.25rem;
+  font-weight: 600;
+  font-size: 1.5rem;
   color: var(--ink);
   background: rgba(251, 246, 240, 0.95);
   border-radius: var(--radius-pill);
@@ -441,7 +451,7 @@ html[data-journey='3d'] .garden-walk {
 
 /*
  * Mọi chữ nằm trên cảnh vườn 3D đều nằm trên một tấm nền kem hình vòm (cùng ngôn ngữ với tấm lời mời trên cổng) và dùng
- * đúng hai font: serif (Playfair) cho tiêu đề, sans (Be Vietnam Pro) cho thông tin; chữ tối trên nền sáng.
+ * đúng hai font: serif (Cormorant) cho tiêu đề, sans (Be Vietnam Pro) cho thông tin; chữ tối trên nền sáng.
  */
 .events-head {
   max-width: 420px;
@@ -535,8 +545,8 @@ html[data-journey='3d'] .garden-walk {
 .gift-who {
   font-family: var(--font-serif);
   font-weight: 500;
-  font-size: 1.4rem;
-  color: var(--accent-strong);
+  font-size: 1.7rem;
+  color: var(--ink);
 }
 
 .gift-qr {
@@ -803,8 +813,8 @@ html[data-journey='3d'] .garden-walk {
 .wish-form-title {
   font-family: var(--font-serif);
   font-weight: 500;
-  font-size: 1.4rem;
-  color: var(--accent-strong);
+  font-size: 1.7rem;
+  color: var(--ink);
   margin-bottom: var(--space-2);
 }
 
@@ -1148,7 +1158,7 @@ html[data-journey='3d'] .photo-wish-card {
 .photo-wish-card .wish-message {
   font-family: var(--font-serif);
   font-style: italic;
-  font-size: 1.125rem;
+  font-size: 1.35rem;
   line-height: 1.4;
 }
 

@@ -16,6 +16,11 @@
   --accent: #b76e79;
   --accent-strong: #9e5560;
 
+  --champagne: #b8924a;
+  --glass: rgba(255, 255, 255, 0.72);
+  --glass-border: rgba(184, 146, 74, 0.45);
+  --shadow-soft: 0 10px 30px rgba(59, 42, 45, 0.12);
+
   --ink: #3b2a2d;
   --ink-soft: #6b5458;
   --card: #ffffff;
@@ -30,7 +35,7 @@
   --tod: 0;
   --journey-bg: var(--bg);
 
-  --font-serif: 'Playfair Display', Georgia, 'Noto Serif', serif;
+  --font-serif: 'Cormorant Garamond', Georgia, 'Noto Serif', serif;
   --font-sans: 'Be Vietnam Pro', system-ui, -apple-system, 'Segoe UI', sans-serif;
 
   --text-body: 1rem; /* 16px */
@@ -43,7 +48,7 @@
   --space-4: 1.5rem;
   --space-5: 2.5rem;
 
-  --radius-card: 14px;
+  --radius-card: 20px;
   --radius-pill: 999px;
   --tap-min: 48px;
   --action-bar-h: 64px;
