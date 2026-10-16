@@ -21,6 +21,7 @@ import {
 } from 'three'
 import { mulberry32 } from '../../lib/seeded-random'
 import { gate } from '../gate-state'
+import { createCameraBackdrop, type CameraBackdrop } from './camera-backdrop'
 import { photoState } from '../photo-state'
 import type { QualityTier, TierSettings } from '../quality-tier'
 import type { JourneyFrame, SceneContext, SceneModule } from '../scene-module'
@@ -195,6 +196,7 @@ export function createGardenScene(): SceneModule {
   let fog: Fog | null = null
   let ground: Mesh | null = null
   let groundMaterial: MeshBasicMaterial | null = null
+  let backdrop: CameraBackdrop | null = null
   let lastFogTod = -1
   let floraRefHeld = false
   let pathX: (z: number) => number = () => 0
@@ -416,12 +418,36 @@ export function createGardenScene(): SceneModule {
       // được che phấn hoa hay làm hỏng lúc ảnh hero hiện dần. Nó mờ đi đúng bằng độ hiện của ảnh (xem update).
       // Mặt đất kéo xa quá tầm sương mù: chân trời tan vào màu nền thay vì một đường cắt cứng.
       const groundDepth = GROUND_NEAR - (Z_END - 90)
-      groundMaterial = track(new MeshBasicMaterial({ color: '#dbe8cf', transparent: true, depthWrite: false }))
+      // Mặt đất mờ dần về phía xa (alpha theo độ sâu, không dùng sương) để hòa vào phông xa thay vì một đường chân trời cắt cứng.
+      const fadeCanvas = document.createElement('canvas')
+      fadeCanvas.width = 4
+      fadeCanvas.height = 256
+      const fadeContext = fadeCanvas.getContext('2d')
+      if (fadeContext) {
+        // Hàng trên cùng của canvas ứng với đầu xa của mặt đất (v = 1).
+        const gradient = fadeContext.createLinearGradient(0, 0, 0, 256)
+        gradient.addColorStop(0, 'rgba(255,255,255,0)')
+        gradient.addColorStop(0.5, 'rgba(255,255,255,0)')
+        gradient.addColorStop(0.82, 'rgba(255,255,255,1)')
+        gradient.addColorStop(1, 'rgba(255,255,255,1)')
+        fadeContext.fillStyle = gradient
+        fadeContext.fillRect(0, 0, 4, 256)
+      }
+      groundMaterial = track(
+        new MeshBasicMaterial({
+          color: '#dfe7c8',
+          map: track(new CanvasTexture(fadeCanvas)),
+          transparent: true,
+          depthWrite: false,
+          fog: false,
+        }),
+      )
       ground = new Mesh(track(new PlaneGeometry(80, groundDepth)), groundMaterial)
       ground.rotation.x = -Math.PI / 2
       ground.position.set(0, 0, GROUND_NEAR - groundDepth / 2)
       ground.renderOrder = -1
       root.add(ground)
+      backdrop = createCameraBackdrop(context.scene, 'assets/backdrop/garden-far.webp', { renderOrder: -3 })
 
       // Khung cổng vòm (cung + hai trụ) cho từng cổng; hoa/lá bám lên trên.
       const cream = track(new MeshBasicMaterial({ color: '#efe8da' }))
@@ -466,6 +492,8 @@ export function createGardenScene(): SceneModule {
       const photoOpacity = photoState.opacity
       showing = gate.getState() === 'open' && progress < GARDEN_VISIBLE_UNTIL && photoOpacity < 0.999
       root.visible = showing
+      // Phông xa không thuộc `root` (nó bám theo camera): phải tắt riêng khi vườn ẩn.
+      backdrop?.update(ctx.camera, showing ? 1 - photoOpacity : 0, ctx.camera.position.x * 0.004)
       if (!showing) return
 
       timeUniform.value = time
@@ -508,6 +536,8 @@ export function createGardenScene(): SceneModule {
       fog = null
       ground = null
       groundMaterial = null
+      backdrop?.dispose()
+      backdrop = null
       showing = false
     },
   } satisfies SceneModule

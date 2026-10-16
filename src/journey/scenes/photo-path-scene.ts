@@ -20,6 +20,7 @@ import type { QualityTier, TierSettings } from '../quality-tier'
 import type { JourneyFrame, SceneContext, SceneModule } from '../scene-module'
 import { wishLights } from '../wish-lights-state'
 import { ARCH_HEIGHT, createArchBorderGeometry, createArchPhotoGeometry } from './photo-arch-geometry'
+import { createCameraBackdrop, type CameraBackdrop } from './camera-backdrop'
 import { acquireFlora, releaseFlora } from './flora-sprites'
 import { createWreath, createWreathShared, type Wreath, type WreathShared } from './photo-wreath'
 import { createWishTags, type WishTags } from './photo-wish-tags'
@@ -49,6 +50,12 @@ const FADE_IN_FAR = 5.8
 const FADE_IN_NEAR = 4.6
 const FADE_OUT_NEAR = 3.4
 const FADE_OUT_GONE = 2.2
+/** Phông bokeh hiện dần khi camera tới phần ảnh và tan khi rời; khoảng tiến độ (vào, ra). */
+const BACKDROP_IN: readonly [number, number] = [0.5, 0.545]
+const BACKDROP_OUT: readonly [number, number] = [0.715, 0.76]
+const backdropOpacity = (progress: number) =>
+  clamp01((progress - BACKDROP_IN[0]) / (BACKDROP_IN[1] - BACKDROP_IN[0])) *
+  (1 - clamp01((progress - BACKDROP_OUT[0]) / (BACKDROP_OUT[1] - BACKDROP_OUT[0])))
 const BORDER_MARGIN = 0.09
 const MAX_PHOTOS = 8
 
@@ -115,6 +122,7 @@ export function createPhotoPathScene({ photos }: { photos: readonly AssetImage[]
   let showing = false
   let sharedBorder: ShapeGeometry | null = null
   let wreathShared: WreathShared | null = null
+  let backdrop: CameraBackdrop | null = null
   let floraHeld = false
   let lastTod = -1
   const raycaster = new Raycaster()
@@ -195,6 +203,12 @@ export function createPhotoPathScene({ photos }: { photos: readonly AssetImage[]
         const tags = createWishTags()
         const group = new Group()
         group.add(border, face, wreath.group, tags.group)
+        // Phông bokeh vẽ ở thứ tự 1: khung ảnh, vòng hoa và thẻ nơ phải nằm trên nó.
+        border.renderOrder = 2
+        face.renderOrder = 2
+        tags.group.traverse((object) => {
+          object.renderOrder = 6
+        })
         group.position.copy(position)
         // Mặt khung hướng về camera đang tới (ngược chiều đi), nghiêng nhẹ xen kẽ.
         group.rotation.y = Math.atan2(-tangent.x, -tangent.z) + side * YAW
@@ -217,6 +231,8 @@ export function createPhotoPathScene({ photos }: { photos: readonly AssetImage[]
       ctx = context
       buildFrames(context)
       wishLights.setPhotoCount(items.length)
+      // Phông nhòe ấm phủ lên vườn khi tới phần ảnh: ảnh và vòm hoa nổi lên như trên sân khấu, vườn lùi lại.
+      backdrop = createCameraBackdrop(context.scene, 'assets/backdrop/photo-bokeh.webp', { renderOrder: 1 })
       root.visible = false
       context.scene.add(root)
 
@@ -240,6 +256,7 @@ export function createPhotoPathScene({ photos }: { photos: readonly AssetImage[]
 
       showing = gate.getState() === 'open' && progress > SHOW_FROM && progress < SHOW_TO
       root.visible = showing
+      backdrop?.update(ctx.camera, gate.getState() === 'open' ? backdropOpacity(progress) : 0, ctx.camera.position.x * 0.004)
       if (!showing) return
 
       // Ánh chiều ấm dần: ảnh không đổi màu gốc, chỉ nhuộm nhẹ theo giờ.
@@ -302,6 +319,8 @@ export function createPhotoPathScene({ photos }: { photos: readonly AssetImage[]
       })
       wreathShared?.dispose()
       wreathShared = null
+      backdrop?.dispose()
+      backdrop = null
       sharedBorder?.dispose()
       sharedBorder = null
       frames.length = 0

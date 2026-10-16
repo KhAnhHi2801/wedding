@@ -305,7 +305,7 @@ export function createWreath(shared: WreathShared, seed: number, density = 1): W
       mesh.instanceMatrix.needsUpdate = true
       mesh.frustumCulled = false
       // Xa trước, bóng, rồi sprite.
-      mesh.renderOrder = items[0].z < 0 ? 2 : isShadow ? 3 : 4
+      mesh.renderOrder = items[0].z < 0 ? 3 : isShadow ? 4 : 5
       group.add(mesh)
       meshes.push(mesh)
     }
