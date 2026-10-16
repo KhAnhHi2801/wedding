@@ -34,6 +34,8 @@ export interface BankAccount {
 export const weddingConfig = {
   couple: { bride: "Ngọc Khánh", groom: "Quốc Tuân" },
   dateLabel: "Thứ Bảy, 20 tháng 12, 2026",
+  /** Cùng ngày với `dateLabel`, dạng ISO để máy đọc (thuộc tính `datetime` của thẻ `<time>`). */
+  dateIso: "2026-12-20",
   groupTitles: { trai: "Nhà trai", gai: "Nhà gái" } satisfies Record<
     Side,
     string

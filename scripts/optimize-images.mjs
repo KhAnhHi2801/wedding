@@ -17,6 +17,7 @@ import { mkdir, readdir } from 'node:fs/promises'
 import { basename, dirname, extname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import sharp from 'sharp'
+import { bakePaper, paperBakeSpec } from './lib/paper-bake.mjs'
 
 const repo = join(dirname(fileURLToPath(import.meta.url)), '..')
 const srcRoot = join(repo, 'assets-src')
@@ -41,6 +42,22 @@ const profiles = {
     pipeline: (img) => img.resize({ width: 1024, height: 1024, fit: 'inside', withoutEnlargement: true }).webp({ lossless: true }),
   },
   share: { ext: '.jpg', pipeline: (img) => img.resize({ width: 1200, withoutEnlargement: true }).jpeg({ quality: 82 }) },
+  // Ảnh tách nền (giữ alpha) dùng làm hình giấy cắt trong cảnh 3D; tên file khớp với ảnh gốc: couple, photo-01 ... photo-08.
+  // Viền giấy trắng và bóng đổ được nướng sẵn vào ảnh (xem scripts/lib/paper-bake.mjs), nên ảnh ra rộng hơn ảnh vào một lề.
+  cutouts: {
+    ext: '.webp',
+    pipeline: async (img) => {
+      const resized = await img.resize({ width: 1400, height: 2100, fit: 'inside', withoutEnlargement: true }).png().toBuffer()
+      const { height } = await sharp(resized).metadata()
+      const baked = await bakePaper(resized, paperBakeSpec(height))
+      return sharp(baked).webp({ quality: 82, alphaQuality: 90 })
+    },
+  },
+  // Depth map thang xám: độ phân giải thấp là đủ vì chỉ dùng để đẩy lệch hình, và không cần alpha.
+  depth: {
+    ext: '.webp',
+    pipeline: (img) => img.resize({ width: 768, height: 768, fit: 'inside', withoutEnlargement: true }).removeAlpha().greyscale().webp({ quality: 88 }),
+  },
 }
 
 if (!existsSync(srcRoot)) {
@@ -50,7 +67,10 @@ if (!existsSync(srcRoot)) {
 
 let ok = 0
 let failed = 0
+// Có thể chỉ chạy một vài thư mục: `npm run optimize:images -- cutouts depth`
+const only = process.argv.slice(2)
 for (const [folder, profile] of Object.entries(profiles)) {
+  if (only.length && !only.includes(folder)) continue
   const dir = join(srcRoot, folder)
   if (!existsSync(dir)) continue
   const outDir = join(outRoot, folder)
@@ -75,7 +95,8 @@ for (const [folder, profile] of Object.entries(profiles)) {
     seen.set(outName, name)
 
     try {
-      const info = await profile.pipeline(sharp(join(dir, name)).rotate()).toFile(join(outDir, outName))
+      const processed = await profile.pipeline(sharp(join(dir, name)).rotate())
+      const info = await processed.toFile(join(outDir, outName))
       const kb = Math.round(info.size / 1024)
       const warn = profile.maxBytes && info.size > profile.maxBytes ? `  CẢNH BÁO: > ${profile.maxBytes / 1024}KB, ảnh LCP nên nhẹ hơn` : ''
       console.log(`${folder}/${name} -> ${outName} (${kb}KB, ${info.width}x${info.height})${warn}`)

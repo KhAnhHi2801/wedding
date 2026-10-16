@@ -1,0 +1,12 @@
+{
+  "frames": 12,
+  "cols": 4,
+  "rows": 3,
+  "frameWidth": 283,
+  "frameHeight": 576,
+  "fps": 12,
+  "pxPerMeter": 380.8,
+  "characterHeightM": 1.4386,
+  "strideMetersPerCycle": 1.08,
+  "facing": "away"
+}

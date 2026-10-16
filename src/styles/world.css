@@ -1,0 +1,381 @@
+/*
+ * Giấy cắt dán - mint: lớp giao diện phẳng nằm trên canvas 3D.
+ * Token theo plans/261016-1134-3d-website-ai-workflow/design-system.md. Màu pastel (blush, butter, lilac) chỉ cho mảng lớn
+ * và cảnh 3D, không dùng làm màu chữ. Tương phản (trên --paper): ink 11.3:1, ink-soft 5.85:1, mint-deep 4.92:1.
+ */
+:root {
+  --paper: #f7fbf8;
+  --mint-100: #ddf1e8;
+  --mint-300: #a9dcc6;
+  --mint-deep: #2f7a63;
+  --w-ink: #1f3d36;
+  --w-ink-soft: #4a6860;
+  --w-blush: #f4c9d2;
+  --w-rose-deep: #a5476b;
+
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --duration-fast: 180ms;
+}
+
+html {
+  color-scheme: light;
+}
+
+body {
+  background: var(--paper);
+  /* Chưa có thanh hành động cố định ở đáy: bỏ phần đệm kế thừa từ global.css. */
+  padding-bottom: 0;
+}
+
+.world-page {
+  --ink: var(--w-ink);
+  --ink-soft: var(--w-ink-soft);
+  color: var(--w-ink);
+  position: relative;
+}
+
+/* Canvas dùng 100lvh (viewport lớn nhất) nên không đổi kích thước khi thanh địa chỉ điện thoại ẩn/hiện. */
+.world-canvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 0;
+  display: block;
+  width: 100%;
+  height: 100lvh;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 600ms var(--ease-out);
+}
+
+.world-canvas[data-status='ready'] {
+  opacity: 1;
+}
+
+.world-canvas[data-status='unsupported'],
+.world-canvas[data-status='lost'] {
+  display: none;
+}
+
+.world-fallback {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  width: 100%;
+  height: 100lvh;
+  object-fit: cover;
+  object-position: center top;
+  pointer-events: none;
+}
+
+.skip-link {
+  position: fixed;
+  top: 0.75rem;
+  left: 0.75rem;
+  z-index: 10;
+  padding: 0.75rem 1rem;
+  border-radius: 12px;
+  background: var(--w-ink);
+  color: var(--paper);
+  transform: translateY(-200%);
+}
+
+.skip-link:focus-visible {
+  transform: none;
+}
+
+/* Mỗi chương cao hơn màn hình để có chỗ cuộn; khối chữ dính ở giữa trong lúc camera di chuyển. */
+.chapters {
+  position: relative;
+  z-index: 1;
+}
+
+.chapter {
+  min-height: 140svh;
+  scroll-margin-top: 0;
+}
+
+.chapter__stage {
+  position: sticky;
+  top: 0;
+  display: grid;
+  align-content: center;
+  height: 100svh;
+  padding: max(1.5rem, env(safe-area-inset-top)) max(1.5rem, env(safe-area-inset-right))
+    max(1.5rem, env(safe-area-inset-bottom)) max(1.5rem, env(safe-area-inset-left));
+}
+
+.chapter__copy {
+  max-width: 24rem;
+  /* Cột trái ở màn rộng, chừa giữa màn hình cho cặp đôi trong cảnh. */
+  margin-left: clamp(0rem, 4vw, 4rem);
+}
+
+.chapter__kicker {
+  margin-bottom: var(--space-2);
+  font-size: 0.875rem;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--mint-deep);
+}
+
+.chapter__title {
+  font-family: var(--font-serif);
+  font-size: clamp(2rem, 6vw, 3.5rem);
+  font-weight: 600;
+  line-height: 1.1;
+  text-wrap: balance;
+}
+
+.chapter__title--names {
+  display: grid;
+  gap: 0.1em;
+  font-size: clamp(2.5rem, 8vw, 5rem);
+}
+
+.chapter__amp {
+  font-style: italic;
+  font-weight: 500;
+  color: var(--w-rose-deep);
+}
+
+.chapter__body {
+  margin-top: var(--space-3);
+  font-size: var(--text-lead);
+  color: var(--w-ink-soft);
+  text-wrap: pretty;
+}
+
+/* Màn dọc và gần vuông (điện thoại, cửa sổ hẹp): chữ ở phía trên, cảnh 3D (đã được đẩy xuống thấp) ở phía dưới.
+   Ngưỡng 6/5 khớp `aspectRange.landscape` trong world-config.ts, nơi camera đổi sang khung dọc. */
+@media (max-aspect-ratio: 6/5) {
+  .chapter__stage {
+    align-content: start;
+    padding-top: max(3.5rem, calc(env(safe-area-inset-top) + 2.5rem));
+  }
+
+  .chapter__copy {
+    margin-left: 0;
+    max-width: none;
+    text-align: center;
+  }
+
+  /* Tên cô dâu, chú rể trên một dòng (tự xuống dòng khi hẹp) để khối chữ thấp, chừa chỗ cho cảnh phía dưới. */
+  .chapter__title--names {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: baseline;
+    gap: 0 0.3em;
+    font-size: clamp(2rem, 8vw, 3.25rem);
+  }
+}
+
+.chapter-nav {
+  position: fixed;
+  top: 50%;
+  right: max(0.5rem, env(safe-area-inset-right));
+  z-index: 2;
+  transform: translateY(-50%);
+}
+
+.chapter-nav ol {
+  display: grid;
+  gap: 0.25rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.chapter-nav a {
+  display: grid;
+  place-items: center;
+  width: var(--tap-min);
+  height: var(--tap-min);
+  touch-action: manipulation;
+  text-decoration: none;
+}
+
+.chapter-nav__dot {
+  width: 0.625rem;
+  height: 0.625rem;
+  border: 2px solid var(--mint-deep);
+  border-radius: 50%;
+  background: transparent;
+  transition:
+    background-color var(--duration-fast) var(--ease-out),
+    transform var(--duration-fast) var(--ease-out);
+}
+
+.chapter-nav a[aria-current='step'] .chapter-nav__dot {
+  background: var(--mint-deep);
+  transform: scale(1.3);
+}
+
+.chapter-nav a:hover .chapter-nav__dot {
+  background: var(--mint-300);
+}
+
+/* Nhãn chỉ dành cho trình đọc màn hình; chấm đã đủ rõ cho người nhìn. */
+.chapter-nav__label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.petal-toggle {
+  position: fixed;
+  bottom: max(1rem, env(safe-area-inset-bottom));
+  left: max(1rem, env(safe-area-inset-left));
+  z-index: 2;
+  min-height: var(--tap-min);
+  padding: 0 1.125rem;
+  border: 1px solid var(--mint-300);
+  border-radius: var(--radius-pill);
+  background: rgba(247, 251, 248, 0.9);
+  color: var(--w-ink);
+  font: inherit;
+  font-size: 0.875rem;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition:
+    background-color var(--duration-fast) var(--ease-out),
+    border-color var(--duration-fast) var(--ease-out);
+}
+
+.petal-toggle:hover:not(:disabled) {
+  border-color: var(--mint-deep);
+  background: var(--mint-100);
+}
+
+.petal-toggle:disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+
+/* Nhãn chương: hiện cho chương đang xem, và cho chương khác khi rê chuột hoặc focus bàn phím. */
+.chapter-nav a {
+  position: relative;
+}
+
+.chapter-nav__label {
+  position: absolute;
+  top: 50%;
+  right: calc(100% - 0.5rem);
+  width: auto;
+  height: auto;
+  padding: 0.25rem 0.75rem;
+  overflow: visible;
+  clip-path: none;
+  border: 1px solid var(--mint-300);
+  border-radius: var(--radius-pill);
+  background: rgba(247, 251, 248, 0.94);
+  font-size: 0.8125rem;
+  white-space: nowrap;
+  opacity: 0;
+  transform: translateY(-50%);
+  pointer-events: none;
+  transition: opacity var(--duration-fast) var(--ease-out);
+}
+
+.chapter-nav a[aria-current='step'] .chapter-nav__label,
+.chapter-nav a:hover .chapter-nav__label,
+.chapter-nav a:focus-visible .chapter-nav__label {
+  opacity: 1;
+}
+
+/* Nút dẫn thẳng tới phần giờ & địa điểm ở màn hình đầu. Chữ trắng trên mint-deep đạt 5,14:1. */
+.chapter__cta {
+  display: inline-grid;
+  place-items: center;
+  min-height: var(--tap-min);
+  margin-top: var(--space-4);
+  padding: 0 1.5rem;
+  border-radius: var(--radius-pill);
+  background: var(--mint-deep);
+  color: #fff;
+  font-weight: 500;
+  text-decoration: none;
+  touch-action: manipulation;
+  transition: background-color var(--duration-fast) var(--ease-out);
+}
+
+.chapter__cta:hover {
+  background: #266550;
+}
+
+/* Phần giờ & địa điểm: HTML thường trên nền giấy đặc, che canvas phía sau. */
+.info {
+  position: relative;
+  z-index: 1;
+  background: var(--paper);
+  scroll-margin-top: 0;
+}
+
+.info__inner {
+  display: grid;
+  gap: var(--space-5);
+  max-width: 44rem;
+  margin: 0 auto;
+  padding: var(--space-5) max(1.5rem, env(safe-area-inset-right)) calc(var(--space-5) + env(safe-area-inset-bottom))
+    max(1.5rem, env(safe-area-inset-left));
+}
+
+.info__title {
+  font-family: var(--font-serif);
+  font-size: clamp(2rem, 6vw, 3rem);
+  font-weight: 600;
+  text-wrap: balance;
+}
+
+.info__group {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.info__group-title {
+  font-family: var(--font-serif);
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--mint-deep);
+}
+
+.info__cards {
+  display: grid;
+  gap: var(--space-3);
+}
+
+/* Thẻ sự kiện dùng lại component cũ: đổi nút chính sang mint để khớp bảng màu mới. */
+.info .btn {
+  background: var(--mint-deep);
+  border-color: var(--mint-deep);
+  color: #fff;
+}
+
+.info .btn-ghost {
+  background: transparent;
+  color: var(--mint-deep);
+}
+
+/* Thẻ sự kiện cũ có dáng vòm cổng của hành trình trước; ở đây là thẻ giấy phẳng, bo góc nhỏ, có bóng đổ cứng. */
+.info .event-card {
+  margin-bottom: 0;
+  padding: var(--space-4) var(--space-3);
+  border: 1px solid var(--mint-300);
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 4px 5px 0 rgba(31, 61, 54, 0.1);
+  text-align: left;
+}
+
+.info .event-card .row {
+  justify-content: flex-start;
+}
+
+.info .event-time {
+  color: var(--w-rose-deep);
+}

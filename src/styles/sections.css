@@ -257,21 +257,32 @@ html[data-journey='3d'] .hero-scrim {
   right: 0;
   bottom: calc(env(safe-area-inset-bottom) + 12vh);
   display: block;
-  margin: 0;
+  width: fit-content;
+  min-height: var(--tap-min);
+  margin: 0 auto;
+  padding: 0.85rem 1.6rem;
   text-align: center;
-  font-size: 0.95rem;
+  font-size: 1rem;
+  font-weight: 600;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--ink-soft);
+  /* Nút mời chạm rõ ràng: viền champagne, nền kính, quầng thở lan ra để người lớn tuổi nhận ra đây là chỗ chạm. */
+  color: var(--accent-strong);
+  background: var(--glass);
+  border: 1.5px solid var(--champagne);
+  border-radius: var(--radius-pill);
   pointer-events: none;
   opacity: max(0, calc(1 - var(--thread, 0) * 12));
   animation: hint-breathe 2.4s ease-in-out infinite;
 }
 
 @keyframes hint-breathe {
-  50% {
-    transform: translateY(-4px);
-    color: var(--ink);
+  0% {
+    box-shadow: 0 0 0 0 rgba(184, 146, 74, 0.45);
+  }
+  70%,
+  100% {
+    box-shadow: 0 0 0 16px rgba(184, 146, 74, 0);
   }
 }
 
@@ -1009,13 +1020,11 @@ html[data-journey='3d'] .photo-path-tap {
   touch-action: pan-y;
 }
 
+/* Nằm trong luồng ngay dưới phụ đề (không đặt tuyệt đối): phụ đề xuống dòng trên màn hẹp cũng không bị đè chữ. */
 html[data-journey='3d'] .photo-path-hint {
   display: block;
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: calc(max(var(--space-5), env(safe-area-inset-top)) + 4.4rem);
-  margin: 0;
+  position: relative;
+  margin: var(--space-1) 0 0;
   padding: 0 20px;
   text-align: center;
   font-size: var(--text-body);
@@ -1140,16 +1149,20 @@ html[data-journey='3d'] .photo-wish-card {
   bottom: calc(var(--action-bar-h) + 12px + env(safe-area-inset-bottom));
   max-width: 520px;
   margin: 0 auto;
-  padding: var(--space-2) var(--space-3);
+  padding: var(--space-1) var(--space-3) var(--space-2);
   border-radius: var(--radius-card);
-  background: rgba(251, 246, 240, 0.95);
-  box-shadow: 0 6px 22px rgba(59, 42, 45, 0.18);
+  /* Kính mờ thay vì giấy đặc: ảnh 3D phía sau vẫn thấp thoáng, thẻ không còn là một khối chắn nửa màn hình. */
+  background: rgba(251, 246, 240, 0.78);
+  -webkit-backdrop-filter: blur(14px) saturate(1.2);
+  backdrop-filter: blur(14px) saturate(1.2);
+  border: 1px solid var(--glass-border);
+  box-shadow: 0 6px 22px rgba(59, 42, 45, 0.16);
   color: var(--ink);
   text-align: center;
 }
 
 .photo-wish-text {
-  min-height: 4.4em;
+  min-height: 3.2em;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -1158,8 +1171,8 @@ html[data-journey='3d'] .photo-wish-card {
 .photo-wish-card .wish-message {
   font-family: var(--font-serif);
   font-style: italic;
-  font-size: 1.35rem;
-  line-height: 1.4;
+  font-size: 1.2rem;
+  line-height: 1.35;
 }
 
 .photo-wish-empty {
